@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>uggame-project</artifactId>
+        <groupId>com.dofun</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>uggame-framework</artifactId>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>uggame-framework-util</module>
+        <module>uggame-framework-log</module>
+        <module>uggame-framework-common</module>
+        <module>uggame-framework-core</module>
+        <module>uggame-framework-mysql</module>
+        <module>uggame-framework-redis</module>
+    </modules>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring.boot.main.version}</version>
+                <executions>
+                    <execution>
+                        <id>package-all</id>
+                        <phase>none</phase>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
