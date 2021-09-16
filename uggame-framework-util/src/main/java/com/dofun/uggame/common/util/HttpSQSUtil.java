@@ -33,7 +33,7 @@ public class HttpSQSUtil {
         String result = HttpUtils.postJson(url, message);
         log.debug("result:{}", result);
         if ("HTTPSQS_PUT_OK".equals(result)) {
-            log.debug("消息入队成功");
+            log.debug("HttPSQS 消息入队成功");
         } else {
             throw new RuntimeException(topicName + " 消息入队失败");
         }
@@ -59,7 +59,7 @@ public class HttpSQSUtil {
         String result = HttpUtils.get(url);
         log.debug("result:{}", result);
         if ("HTTPSQS_GET_END".equals(result)) {
-            log.debug("没有新消息");
+            log.debug("HttPSQS 没有新消息");
             return null;
         }
         return JSON.parseObject(result, clazz);
