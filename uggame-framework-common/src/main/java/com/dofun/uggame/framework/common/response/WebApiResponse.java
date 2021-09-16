@@ -136,7 +136,7 @@ public class WebApiResponse<T extends BaseResponseParam> implements Serializable
     @JSONField(serialize = false)
     @JsonIgnore
     public boolean isSuccessAndHasContent() {
-        return isSuccess()&&getData()!=null;
+        return isSuccess() && getData() != null;
     }
 
     @JSONField(serialize = false)

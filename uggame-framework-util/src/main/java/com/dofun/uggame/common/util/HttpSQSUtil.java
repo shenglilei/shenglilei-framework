@@ -64,4 +64,6 @@ public class HttpSQSUtil {
         }
         return JSON.parseObject(result, clazz);
     }
+
+
 }
