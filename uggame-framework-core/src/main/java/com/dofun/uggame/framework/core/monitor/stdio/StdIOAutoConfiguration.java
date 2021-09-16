@@ -3,7 +3,6 @@ package com.dofun.uggame.framework.core.monitor.stdio;
 
 import com.alibaba.fastjson.JSON;
 import com.dofun.uggame.framework.core.monitor.constants.AspectjOrder;
-import com.dofun.uggame.framework.core.utils.ResponseUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -180,10 +179,9 @@ public class StdIOAutoConfiguration {
                 logger.warn("signature is null,should fix quickly.");
             } else {
                 String controller = signature.getDeclaringTypeName();
-                String method = controller + "." + signature.getName();
-                logger.info("请求的接口代码: {}", method);
-                if (intFilter(controller, method)) {
-                    logger.warn(method + " can not print in .");
+                logger.info("请求的接口代码，controller class：{}，method：{}", controller, signature.getName());
+                if (intFilter(controller, signature.getName())) {
+                    logger.warn(signature.getName() + " can not print in .");
                     return;
                 }
             }
