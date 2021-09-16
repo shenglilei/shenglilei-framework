@@ -17,7 +17,7 @@ import java.util.List;
 @Slf4j
 public class HttpSQSUtil {
     /**
-     * 消息入队
+     * 消息入队-单个消息
      *
      * @param ip        ip
      * @param port      port
@@ -25,7 +25,7 @@ public class HttpSQSUtil {
      * @param topicName 队列名称
      * @param message   消息
      */
-    public static void put(String ip, Integer port, String auth, String topicName, List message) {
+    public static void put(String ip, Integer port, String auth, String topicName, String message) {
         StringBuilder builder = new StringBuilder();
         builder.append("http://").append(ip).append(":").append(port).append("/?").append("name=").append(topicName).append("&opt=put");
         if (auth != null && !auth.isEmpty()) {
@@ -43,7 +43,7 @@ public class HttpSQSUtil {
     }
 
     /**
-     * 消息出队
+     * 消息出队-单个消息
      *
      * @param ip        ip
      * @param port      port
@@ -51,7 +51,7 @@ public class HttpSQSUtil {
      * @param topicName 队列名称
      * @param clazz     消息类class
      */
-    public static <T> List<T> get(String ip, Integer port, String auth, String topicName, Class<T> clazz) {
+    public static <T> T get(String ip, Integer port, String auth, String topicName, Class<T> clazz) {
         StringBuilder builder = new StringBuilder();
         builder.append("http://").append(ip).append(":").append(port).append("/?").append("name=").append(topicName).append("&opt=get").append("&charset=utf-8");
         if (auth != null && !auth.isEmpty()) {
@@ -63,8 +63,8 @@ public class HttpSQSUtil {
         log.debug("result:{}", result);
         if ("HTTPSQS_GET_END".equals(result)) {
             log.debug("没有新消息");
-            return new ArrayList<>();
+            return null;
         }
-        return JSON.parseArray(result, clazz);
+        return JSON.parseObject(JSON.parse(result).toString(),clazz);
     }
 }
