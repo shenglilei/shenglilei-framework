@@ -3,9 +3,6 @@ package com.dofun.uggame.common.util;
 import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * HttpSQS消息队列的工具类
  * <p>
@@ -33,7 +30,7 @@ public class HttpSQSUtil {
         }
         String url = builder.toString();
         log.debug("url:{}", url);
-        String result = HttpUtils.postJson(url, JSON.toJSONString(message));
+        String result = HttpUtils.postJson(url, message);
         log.debug("result:{}", result);
         if ("HTTPSQS_PUT_OK".equals(result)) {
             log.debug("消息入队成功");
@@ -65,6 +62,6 @@ public class HttpSQSUtil {
             log.debug("没有新消息");
             return null;
         }
-        return JSON.parseObject(JSON.parse(result).toString(),clazz);
+        return JSON.parseObject(result, clazz);
     }
 }
