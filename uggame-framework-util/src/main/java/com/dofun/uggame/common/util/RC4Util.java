@@ -7,7 +7,7 @@ package com.dofun.uggame.common.util;
  * Time:18:34
  */
 public class RC4Util {
-    public static String decry(byte[] data, String key) {
+    private static String decry(byte[] data, String key) {
         if (data == null || key == null) {
             return null;
         }
@@ -22,18 +22,21 @@ public class RC4Util {
      * @return 明文数据
      */
     public static String decry(String data, String key) {
-        if (data == null || key == null) {
-            return null;
+        if (data == null || data.isEmpty()) {
+            throw new IllegalArgumentException("数据不能为空.");
+        }
+        if (key == null || key.isEmpty()) {
+            throw new IllegalArgumentException("密钥不能为空.");
         }
         try {
             return new String(RC4Base(HexString2Bytes(data), key));
         } catch (NumberFormatException ex) {
-            return null;
+            throw new IllegalArgumentException("数据解密失败.");
         }
     }
 
 
-    public static byte[] encry_RC4_byte(String data, String key) {
+    private static byte[] encry_RC4_byte(String data, String key) {
         if (data == null || key == null) {
             return null;
         }
@@ -49,8 +52,11 @@ public class RC4Util {
      * @return 加密数据
      */
     public static String encrypt(String data, String key) {
-        if (data == null || key == null) {
-            return null;
+        if (data == null || data.isEmpty()) {
+            throw new IllegalArgumentException("数据不能为空.");
+        }
+        if (key == null || key.isEmpty()) {
+            throw new IllegalArgumentException("密钥不能为空.");
         }
         return toHexString(asString(encry_RC4_byte(data, key))).toUpperCase();
     }
