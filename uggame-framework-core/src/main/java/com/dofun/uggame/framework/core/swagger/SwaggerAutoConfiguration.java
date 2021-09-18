@@ -1,6 +1,5 @@
 package com.dofun.uggame.framework.core.swagger;
 
-import com.dofun.uggame.framework.common.utils.JniInvokeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
