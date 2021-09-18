@@ -37,11 +37,10 @@ public class SwaggerAutoConfiguration {
 
     @Bean
     public Docket createRestApi() {
-        log.info(JniInvokeUtils.getClass(this).getPackage().getName());
         Docket docket = new Docket(DocumentationType.SWAGGER_2)
                 .apiInfo(apiInfo())
                 .select()
-                .apis(RequestHandlerSelectors.basePackage(properties.getBasePackage() == null ? "com.dofun.uggame" : properties.getBasePackage()))
+                .apis(RequestHandlerSelectors.basePackage(properties.getBasePackage()))
                 .paths(PathSelectors.any())
                 .build()
                 .globalOperationParameters(getGlobalParameters());
