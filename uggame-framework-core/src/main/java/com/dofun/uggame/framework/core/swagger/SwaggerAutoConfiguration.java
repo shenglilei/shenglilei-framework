@@ -63,7 +63,6 @@ public class SwaggerAutoConfiguration {
     }
 
     private ApiInfo apiInfo() {
-
         if (properties.getApiInfo() == null) {
             SwaggerProperties.ApiInfo apiInfo = new SwaggerProperties.ApiInfo();
             apiInfo.setTitle("REST API接口在线文档");
