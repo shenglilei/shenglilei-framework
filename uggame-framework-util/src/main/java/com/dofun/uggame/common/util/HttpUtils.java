@@ -96,7 +96,7 @@ public class HttpUtils {
             if (body != null) {
                 result = body.string();
             }
-            log.info("send get method request success, url:{}", url);
+            log.debug("send get method request success, url:{}", url);
         } catch (IOException e) {
             log.error("send get method request error, url:{}", url, e);
             throw new RuntimeException(e);
@@ -122,7 +122,7 @@ public class HttpUtils {
             if (!response.isSuccessful())
                 throw new IOException("Unexpected code " + response);
             result = response.body().bytes();
-            log.info("send get method request success, url:{}", url);
+            log.debug("send get method request success, url:{}", url);
         } catch (Exception e) {
             log.error("send get method request error, url:{}", url, e);
             throw new RuntimeException(e);
@@ -154,7 +154,7 @@ public class HttpUtils {
                 throw new IOException("Unexpected code " + response);
             result = response.body().string();
             respLog(url, result);
-            log.info("send post method request success, url:{}", url);
+            log.debug("send post method request success, url:{}", url);
         } catch (Exception e) {
             log.error("send post method request error, url:{}", url, e);
             throw new RuntimeException(e);
@@ -181,7 +181,7 @@ public class HttpUtils {
                 throw new IOException("Unexpected code " + response);
             result = response.body().string();
             respLog(url, result);
-            log.info("send post method request success, url:{}", url);
+            log.debug("send post method request success, url:{}", url);
         } catch (Exception e) {
             log.error("send post method request error, url:{}", url, e);
             throw new RuntimeException(e);
@@ -215,7 +215,7 @@ public class HttpUtils {
                 throw new IOException("Unexpected code " + response);
             result = response.body().string();
             respLog(url, result);
-            log.info("send postFile method request success, url:{}, file:{}", url, msg);
+            log.debug("send postFile method request success, url:{}, file:{}", url, msg);
         } catch (Exception e) {
             log.error("send postFile method request error, url:{}", url, e);
             throw new RuntimeException(e);
@@ -249,7 +249,7 @@ public class HttpUtils {
                 throw new IOException("Unexpected code " + response);
             result = response.body().string();
             respLog(url, result);
-            log.info("send postForm method request success, url:{}, params:{}", url, msg);
+            log.debug("send postForm method request success, url:{}, params:{}", url, msg);
         } catch (Exception e) {
             log.error("send postForm method request error, url:{}", url, e);
             throw new RuntimeException(e);
@@ -286,7 +286,7 @@ public class HttpUtils {
                 throw new IOException("Unexpected code " + response);
             result = response.body().string();
             respLog(url, result);
-            log.info("send postForm method request success, url:{}", url);
+            log.debug("send postForm method request success, url:{}", url);
         } catch (Exception e) {
             log.error("send postForm method request error, url:{}", url, e);
             throw new RuntimeException(e);
@@ -314,7 +314,7 @@ public class HttpUtils {
             }
             result = Optional.ofNullable(response.body()).map(ResponseBody::toString).orElse("");
             respLog(url, result);
-            log.info("send put method request success, url:{}", url);
+            log.debug("send put method request success, url:{}", url);
         } catch (Exception e) {
             log.error("send put method request error, url:{}", url, e);
             throw new RuntimeException("http请求错误: " + e.getMessage(), e);
@@ -444,7 +444,7 @@ public class HttpUtils {
                 throw new IOException("Unexpected code " + response);
             result = response.body().string();
             map.put("body", result);
-            log.info("send post method request success, url:{}", url);
+            log.debug("send post method request success, url:{}", url);
         } catch (Exception e) {
             log.error("send post method request error, url:{}", url, e);
             map.put("body", e.getMessage());
@@ -472,7 +472,7 @@ public class HttpUtils {
                 throw new IOException("Unexpected code " + response);
             }
             result = response.body().string();
-            log.info("send get method request success, url:{}", url);
+            log.debug("send get method request success, url:{}", url);
         } catch (Exception e) {
             log.error("send get method request error, url:{}", url, e);
             throw new RuntimeException(e);
@@ -505,7 +505,7 @@ public class HttpUtils {
                 throw new IOException("Unexpected code " + response);
             }
             result = response.body().string();
-            log.info("request success");
+            log.debug("request success");
         } catch (Exception e) {
             log.error("request error:{} ", e.getMessage(), e);
             throw new RuntimeException(e);
