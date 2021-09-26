@@ -31,7 +31,7 @@ public class RC4Util {
         try {
             return new String(RC4Base(HexString2Bytes(data), key));
         } catch (NumberFormatException ex) {
-            throw new IllegalArgumentException("数据解密失败:"+data);
+            throw new IllegalArgumentException("数据解密失败:" + data);
         }
     }
 
