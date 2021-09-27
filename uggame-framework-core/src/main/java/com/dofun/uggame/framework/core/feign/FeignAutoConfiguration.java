@@ -18,11 +18,4 @@ public class FeignAutoConfiguration {
         log.info("FeignInterceptor is ready to inject.");
         return new FeignInterceptor();
     }
-
-    @Bean
-    public FeignHystrixConcurrencyStrategy createFeignHystrixConcurrencyStrategy() {
-        log.info("FeignHystrixConcurrencyStrategy is ready to inject.");
-        return new FeignHystrixConcurrencyStrategy();
-    }
-
 }

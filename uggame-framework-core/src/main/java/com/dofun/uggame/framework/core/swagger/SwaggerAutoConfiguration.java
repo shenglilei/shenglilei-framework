@@ -48,7 +48,7 @@ public class SwaggerAutoConfiguration {
     }
 
     private List<Parameter> getGlobalParameters() {
-        List<Parameter> globaParamList = new ArrayList<>();
+        List<Parameter> globalParamList = new ArrayList<>();
         List<SwaggerProperties.GlobalOperationParameter> list = properties.getGlobalOperationParameters();
         if (list != null) {
             ParameterBuilder parameterBuilder = new ParameterBuilder();
@@ -56,10 +56,10 @@ public class SwaggerAutoConfiguration {
                 Parameter tokenParam = parameterBuilder.name(l.getName()).description(l.getDescription())
                         .modelRef(new ModelRef(l.getModelRef())).parameterType(l.getParameterType())
                         .required(l.getRequired()).build();
-                globaParamList.add(tokenParam);
+                globalParamList.add(tokenParam);
             });
         }
-        return globaParamList;
+        return globalParamList;
     }
 
     private ApiInfo apiInfo() {

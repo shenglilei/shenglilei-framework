@@ -3,7 +3,6 @@ package com.dofun.uggame.framework.core.utils;
 import com.alibaba.fastjson.JSON;
 import com.dofun.uggame.framework.common.constants.Constants;
 import com.dofun.uggame.framework.common.utils.XXSFilterUtil;
-import com.google.common.base.Charsets;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -11,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 public class ResponseUtil {
@@ -27,7 +27,7 @@ public class ResponseUtil {
         response.setHeader(HttpHeaders.CONTENT_TYPE, Constants.RESPONSE_HEADER_VALUE_CONTENT_TYPE);
         try (Writer writer = response.getWriter()) {
             if (writer != null) {
-                response.setCharacterEncoding(Charsets.UTF_8.name());
+                response.setCharacterEncoding(StandardCharsets.UTF_8.name());
                 writer.write(XXSFilterUtil.filerSpecialChar(message));
             }
         } catch (IOException e) {
