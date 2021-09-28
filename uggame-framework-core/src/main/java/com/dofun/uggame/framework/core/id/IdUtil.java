@@ -14,9 +14,16 @@ import java.util.stream.IntStream;
 
 /**
  * id生成器
+ * <p>
+ * 请使用id微服务
+ * <p>
+ * IdInterface idInterface
+ * <p>
+ * WebApiResponse<IdResponseParam> idResponseParamWebApiResponse = idInterface.next();
  */
 @Slf4j
-public class IdUtil {
+@Deprecated
+class IdUtil {
     private final String applicationName;
 
     public IdUtil(String applicationName) {

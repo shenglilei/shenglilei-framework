@@ -129,7 +129,7 @@ public class StdIOAutoConfiguration {
             } finally {
                 watch.stop();
                 logger.info("接口耗时: " + (watch.getTotalTimeMillis()) + "ms");
-                stdOutOrError(throwable, result, pjp,watch.getTotalTimeMillis());
+                stdOutOrError(throwable, result, pjp, watch.getTotalTimeMillis());
             }
             return result;
         }
@@ -137,9 +137,9 @@ public class StdIOAutoConfiguration {
 
         private void stdOutOrError(Throwable throwable, Object result, ProceedingJoinPoint pjp, long cost) {
             if (throwable == null) {
-                stdOut(result, pjp,cost);
+                stdOut(result, pjp, cost);
             } else {
-                stdError(throwable, result,cost);
+                stdError(throwable, result, cost);
             }
         }
 
@@ -157,11 +157,11 @@ public class StdIOAutoConfiguration {
                 }
             }
 
-            logger.info("接口耗时："+cost+",响应参数:" + (result == null ? "null" : print(result)));
+            logger.info("接口耗时：" + cost + ",响应参数:" + (result == null ? "null" : print(result)));
         }
 
         private void stdError(Throwable throwable, Object result, long cost) {
-            logger.error("接口错误响应信息:" + throwable.getMessage() + ",耗时："+cost+",响应参数:" + (result == null ? "null" : print(result)), throwable);
+            logger.error("接口错误响应信息:" + throwable.getMessage() + ",耗时：" + cost + ",响应参数:" + (result == null ? "null" : print(result)), throwable);
         }
 
         private void stdIn(ProceedingJoinPoint pjp) {
