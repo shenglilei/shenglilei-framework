@@ -2,7 +2,6 @@ package com.dofun.uggame.framework.redis.lock;
 
 
 import com.dofun.uggame.framework.common.spring.SpringContextHolder;
-import com.dofun.uggame.framework.redis.service.RedisService;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -11,12 +10,13 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class RedisLock implements AutoCloseable {
+    public static final int defaultExpireMsecs = 60 * 1000;
+    public static final int defaultTimeoutMsecs = 10 * 1000;
     private volatile RLock lock;
+    private int expireMsecs = defaultExpireMsecs;
+    private int timeoutMsecs = defaultTimeoutMsecs;
 
-    private int expireMsecs = 60 * 1000;
-    private int timeoutMsecs = 10 * 1000;
-
-    public RedisLock(RedisService redisService, String lockKey) {
+    public RedisLock(String lockKey) {
         log.debug("lockKey：{}，create instance start.", lockKey);
         RedissonClient redissonClient = SpringContextHolder.getBean(RedissonClient.class);
         if (redissonClient == null) {
@@ -29,13 +29,13 @@ public class RedisLock implements AutoCloseable {
         log.debug("lockKey：{}，create instance end.", lockKey);
     }
 
-    public RedisLock(RedisService redisService, String lockKey, int timeoutMsecs) {
-        this(redisService, lockKey);
+    public RedisLock(String lockKey, int timeoutMsecs) {
+        this(lockKey);
         this.timeoutMsecs = timeoutMsecs;
     }
 
-    public RedisLock(RedisService redisService, String lockKey, int timeoutMsecs, int expireMsecs) {
-        this(redisService, lockKey, timeoutMsecs);
+    public RedisLock(String lockKey, int timeoutMsecs, int expireMsecs) {
+        this(lockKey, timeoutMsecs);
         this.expireMsecs = expireMsecs;
     }
 

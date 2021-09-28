@@ -78,10 +78,10 @@ public class RedisServiceImpl implements RedisService {
      * @return false=操作失败，true=操作成功
      */
     private boolean savePrefix2Set(String prefix, String key, long score) {
-        if (StringUtils.isEmpty(prefix)) {
+        if (StringUtils.hasLength(prefix)) {
             throw new IllegalArgumentException("prefix 不能为空.");
         }
-        if (StringUtils.isEmpty(key)) {
+        if (StringUtils.hasLength(key)) {
             throw new IllegalArgumentException("key 不能为空.");
         }
         String redisKey = buildRedisKey(prefix, key);
@@ -179,7 +179,7 @@ public class RedisServiceImpl implements RedisService {
      */
     @Override
     public int removePrefix(String prefix) {
-        if (StringUtils.isEmpty(prefix)) {
+        if (StringUtils.hasLength(prefix)) {
             throw new IllegalArgumentException("prefix 不能为空.");
         }
         log.info("按前缀删除，prefix：{}", prefix);
@@ -235,7 +235,7 @@ public class RedisServiceImpl implements RedisService {
      */
     @Override
     public boolean remove(final String key) {
-        if (StringUtils.isEmpty(key)) {
+        if (StringUtils.hasLength(key)) {
             return false;
         }
         try {
@@ -381,7 +381,7 @@ public class RedisServiceImpl implements RedisService {
     @Override
     public void setNull(String key) {
 
-        if (!StringUtils.isEmpty(key)) {
+        if (StringUtils.hasLength(key)) {
             redisTemplate.opsForValue().set(key, "", this.nullValueExpire, TimeUnit.MINUTES);
         }
     }
@@ -394,7 +394,7 @@ public class RedisServiceImpl implements RedisService {
      */
     @Override
     public void set(String key, Object value) {
-        if (!StringUtils.isEmpty(key)) {
+        if (StringUtils.hasLength(key)) {
             redisTemplate.opsForValue().set(key, value);
         }
     }
@@ -408,7 +408,7 @@ public class RedisServiceImpl implements RedisService {
      */
     @Override
     public void set(String key, Object value, long time) {
-        if (!StringUtils.isEmpty(key)) {
+        if (StringUtils.hasLength(key)) {
             set(key, value, time, TimeUnit.SECONDS);
         }
     }
@@ -423,14 +423,14 @@ public class RedisServiceImpl implements RedisService {
      */
     @Override
     public void set(String key, Object value, long time, TimeUnit timeUnit) {
-        if (!StringUtils.isEmpty(key)) {
+        if (StringUtils.hasLength(key)) {
             redisTemplate.opsForValue().set(key, value, time, timeUnit);
         }
     }
 
     @Override
     public void delete(String key) {
-        if (!StringUtils.isEmpty(key)) {
+        if (StringUtils.hasLength(key)) {
             redisTemplate.delete(key);
         }
     }
@@ -452,7 +452,7 @@ public class RedisServiceImpl implements RedisService {
 
     @Override
     public Set<String> keys(String key) {
-        if (!StringUtils.isEmpty(key)) {
+        if (StringUtils.hasLength(key)) {
             return redisTemplate.keys(key);
         }
         return new HashSet<>();
@@ -460,7 +460,7 @@ public class RedisServiceImpl implements RedisService {
 
     @Override
     public long getExpire(String key) {
-        if (!StringUtils.isEmpty(key)) {
+        if (StringUtils.hasLength(key)) {
             return redisTemplate.getExpire(key);
         }
         return 0;
@@ -468,7 +468,7 @@ public class RedisServiceImpl implements RedisService {
 
     @Override
     public DataType type(String key) {
-        if (!StringUtils.isEmpty(key)) {
+        if (StringUtils.hasLength(key)) {
             return redisTemplate.type(key);
         }
         return DataType.NONE;
@@ -476,14 +476,14 @@ public class RedisServiceImpl implements RedisService {
 
     @Override
     public void expire(String key, long time, TimeUnit timeUnit) {
-        if (!StringUtils.isEmpty(key)) {
+        if (StringUtils.hasLength(key)) {
             redisTemplate.expire(key, time, timeUnit);
         }
     }
 
     @Override
     public boolean expireAt(String key, Date date) {
-        if (StringUtils.isEmpty(key) || null == date) {
+        if (StringUtils.hasLength(key) || null == date) {
             return false;
         }
         return redisTemplate.expireAt(key, date);
@@ -681,7 +681,7 @@ public class RedisServiceImpl implements RedisService {
      */
     @Override
     public long sizeForList(String key) {
-        if (StringUtils.isEmpty(key)) {
+        if (StringUtils.hasLength(key)) {
             return -1;
         }
         Long s = redisTemplate.opsForList().size(key);

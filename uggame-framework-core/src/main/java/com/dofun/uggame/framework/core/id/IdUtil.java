@@ -1,7 +1,6 @@
 package com.dofun.uggame.framework.core.id;
 
 
-import com.dofun.uggame.framework.common.utils.JniInvokeUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
@@ -59,6 +58,6 @@ public class IdUtil {
     }
 
     private SnowflakeIdWorker createWorker(String workerId) {
-        return new SnowflakeIdWorker(Math.abs(JniInvokeUtils.hashCode(workerId)) % 31, Math.abs(JniInvokeUtils.hashCode(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHH"))) % 31));
+        return new SnowflakeIdWorker(Math.abs(workerId.hashCode()) % 31, Math.abs(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHH")).hashCode() % 31));
     }
 }

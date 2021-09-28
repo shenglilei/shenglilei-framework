@@ -28,6 +28,8 @@ import javax.servlet.ServletResponse;
 import java.io.*;
 import java.util.List;
 
+import static com.dofun.uggame.framework.common.Constants.SYSTEM_DEFAULT_PACKAGE_ROOT;
+
 /**
  * 记录RestController 方法执行的输入/输出
  * <p>
@@ -127,21 +129,21 @@ public class StdIOAutoConfiguration {
             } finally {
                 watch.stop();
                 logger.info("接口耗时: " + (watch.getTotalTimeMillis()) + "ms");
-                stdOutOrError(throwable, result, pjp);
+                stdOutOrError(throwable, result, pjp,watch.getTotalTimeMillis());
             }
             return result;
         }
 
 
-        private void stdOutOrError(Throwable throwable, Object result, ProceedingJoinPoint pjp) {
+        private void stdOutOrError(Throwable throwable, Object result, ProceedingJoinPoint pjp, long cost) {
             if (throwable == null) {
-                stdOut(result, pjp);
+                stdOut(result, pjp,cost);
             } else {
-                stdError(throwable, result);
+                stdError(throwable, result,cost);
             }
         }
 
-        private void stdOut(Object result, ProceedingJoinPoint pjp) {
+        private void stdOut(Object result, ProceedingJoinPoint pjp, long cost) {
             //过滤输出项
             Signature signature = pjp.getSignature();
             if (signature == null) {
@@ -155,11 +157,11 @@ public class StdIOAutoConfiguration {
                 }
             }
 
-            logger.info("接口响应参数:" + (result == null ? "null" : print(result)));
+            logger.info("接口耗时："+cost+",响应参数:" + (result == null ? "null" : print(result)));
         }
 
-        private void stdError(Throwable throwable, Object result) {
-            logger.error("接口错误响应参数:" + throwable.getMessage() + ",result:" + (result == null ? "null" : print(result)), throwable);
+        private void stdError(Throwable throwable, Object result, long cost) {
+            logger.error("接口错误响应信息:" + throwable.getMessage() + ",耗时："+cost+",响应参数:" + (result == null ? "null" : print(result)), throwable);
         }
 
         private void stdIn(ProceedingJoinPoint pjp) {
@@ -192,7 +194,7 @@ public class StdIOAutoConfiguration {
             }
             int argsLength = args.length;
             if (argsLength <= 0) {
-                logger.info("args is empty.");
+                logger.debug("args is empty.");
                 return;
             }
             logger.info("请求参数对象个数:" + argsLength);
@@ -239,7 +241,7 @@ public class StdIOAutoConfiguration {
                     || classes.contains("uploadfilerequestdto")
                     || classes.contains("stream"));
 
-            if (!classes.contains("com.dofun.uggame.") && inBlackList) {
+            if (!classes.contains(SYSTEM_DEFAULT_PACKAGE_ROOT) && inBlackList) {
                 return object.getClass() + " can not print.";
             }
             ObjectMapper mapper = new ObjectMapper();

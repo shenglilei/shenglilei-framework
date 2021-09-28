@@ -9,10 +9,10 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.spring.starter.RedissonAutoConfiguration;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
@@ -44,8 +44,6 @@ import java.time.Duration;
 public class FrameworkRedisAutoConfiguration {
 
     private final ObjectMapper objectMapper = getObjectMapper();
-    @Value("${spring.application.name}")
-    private String applicationName;
 
     private ObjectMapper getObjectMapper() {
         ObjectMapper om = new ObjectMapper();
@@ -53,7 +51,7 @@ public class FrameworkRedisAutoConfiguration {
         // 解决jackson2无法反序列化LocalDateTime的问题
         om.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         om.registerModule(new JavaTimeModule());
-        om.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
+        om.activateDefaultTyping(LaissezFaireSubTypeValidator.instance, ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
         om.findAndRegisterModules();
         return om;
     }
@@ -63,8 +61,8 @@ public class FrameworkRedisAutoConfiguration {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(redisConnectionFactory);
         //key 值序列化方式
-        RedisSerializer stringSerializer = template.getStringSerializer();
-        RedisSerializer jsonRedisSerializer = new GenericJackson2JsonRedisSerializer(objectMapper);
+        RedisSerializer<String> stringSerializer = template.getStringSerializer();
+        RedisSerializer<Object> jsonRedisSerializer = new GenericJackson2JsonRedisSerializer(objectMapper);
         //设置key 的序列化方式
         template.setKeySerializer(stringSerializer);
         template.setHashKeySerializer(stringSerializer);
@@ -96,8 +94,8 @@ public class FrameworkRedisAutoConfiguration {
     }
 
     @Bean
-    public RedisLockAspect createRedisLockAspect(RedisService redisService) {
+    public RedisLockAspect createRedisLockAspect() {
         log.info("RedisLockAspect is ready to inject.");
-        return new RedisLockAspect(redisService);
+        return new RedisLockAspect();
     }
 }

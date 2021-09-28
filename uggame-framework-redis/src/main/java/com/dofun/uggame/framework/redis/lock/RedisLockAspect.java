@@ -1,7 +1,6 @@
 package com.dofun.uggame.framework.redis.lock;
 
 
-import com.dofun.uggame.framework.redis.service.RedisService;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -14,11 +13,6 @@ import java.lang.reflect.Method;
 @Aspect
 @Slf4j
 public class RedisLockAspect {
-    private final RedisService redisService;
-
-    public RedisLockAspect(RedisService redisService) {
-        this.redisService = redisService;
-    }
 
     /**
      * 切点(控制器中返回值为WebApiResponse且添加RedisLockAop注解的方法)
@@ -33,11 +27,15 @@ public class RedisLockAspect {
         MethodSignature signature = (MethodSignature) pjp.getSignature();
         Method method = signature.getMethod();
         Lock lock = method.getAnnotation(Lock.class);
-        try (RedisLock redisLock = new RedisLock(redisService, lock.key(), lock.timeoutMsecs(), lock.expireMsecs())) {
+        if (lock.key() == null || lock.key().isEmpty()) {
+            log.warn("没有明确指定key，跳过加锁流程。");
+            return pjp.proceed();
+        }
+        try (RedisLock redisLock = new RedisLock(lock.key(), lock.timeoutMsecs(), lock.expireMsecs())) {
             if (redisLock.lock()) {
                 return pjp.proceed();
             } else {
-                throw new RuntimeException("获取锁失败");
+                throw new RuntimeException("获取分布式锁失败,lockKey:" + lock.key());
             }
         }
     }

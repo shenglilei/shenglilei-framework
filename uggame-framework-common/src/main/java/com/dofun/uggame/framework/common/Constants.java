@@ -1,4 +1,4 @@
-package com.dofun.uggame.framework.core.constants;
+package com.dofun.uggame.framework.common;
 
 
 /**
@@ -13,4 +13,6 @@ public class Constants {
      * 越南时间：2021-09-26 19:08:41
      */
     public static final String SYSTEM_DEFAULT_CONFIG_TIMEZONE = "Asia/Ho_Chi_Minh";
+
+    public static final String SYSTEM_DEFAULT_PACKAGE_ROOT = "com.dofun.uggame";
 }

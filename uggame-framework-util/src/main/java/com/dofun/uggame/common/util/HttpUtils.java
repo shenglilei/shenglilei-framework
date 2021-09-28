@@ -5,17 +5,15 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import okhttp3.MultipartBody.Part;
 import okhttp3.internal.Util;
-import org.springframework.util.Assert;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -24,18 +22,18 @@ import java.util.concurrent.TimeUnit;
 /**
  * 处理HTTP请求 GET POST方式帮助类
  * <p>
- * 需引入okhttp3、gson、
+ * 需引入okhttp3
  */
 @Slf4j
 public class HttpUtils {
 
     private static final OkHttpClient CLIENT = new OkHttpClient.Builder()
-            .dispatcher(new Dispatcher(new ThreadPoolExecutor(0, Integer.MAX_VALUE, 600, TimeUnit.SECONDS,
+            .dispatcher(new Dispatcher(new ThreadPoolExecutor(0, Integer.MAX_VALUE, 30, TimeUnit.MINUTES,
                     new SynchronousQueue<>(), Util.threadFactory("OkHttp Dispatcher", false))))
-            .connectionPool(new ConnectionPool(4096, 600, TimeUnit.SECONDS))
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(2, TimeUnit.MINUTES)
-            .writeTimeout(2, TimeUnit.MINUTES)
+            .connectionPool(new ConnectionPool(128, 600, TimeUnit.SECONDS))
+            .connectTimeout(5, TimeUnit.SECONDS)
+            .readTimeout(10, TimeUnit.MINUTES)
+            .writeTimeout(10, TimeUnit.MINUTES)
             .addInterceptor(buildHttpLoggingInterceptor())
             .build();
 
@@ -65,22 +63,7 @@ public class HttpUtils {
     }
 
     /**
-     * 添加代理服务器
-     *
-     * @param builder
-     */
-    public static void addProxy(OkHttpClient.Builder builder, String proxyHost, Integer proxyPort) {
-        Assert.notNull(proxyHost, "代理host不能为空！");
-        Assert.notNull(proxyPort, "代理端口不能为空！");
-        builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort)));
-    }
-
-    /**
      * get请求
-     *
-     * @param url
-     * @return
-     * @since 0512
      */
     public static String get(String url) {
         Request request = new Request.Builder()
@@ -106,166 +89,140 @@ public class HttpUtils {
 
     /**
      * get请求(get byte数组 文件请求专用)
-     *
-     * @param url
-     * @return
-     * @since 0512
      */
     public static byte[] getBytes(String url) {
-        Request request = new Request.Builder() //
-                .url(url) //
-                .build(); //
+        Request request = new Request.Builder()
+                .url(url)
+                .build();
         Response response = null;
-        byte[] result = null;
+        byte[] result;
         try {
             response = CLIENT.newCall(request).execute();
             if (!response.isSuccessful())
                 throw new IOException("Unexpected code " + response);
-            result = response.body().bytes();
+            result = Objects.requireNonNull(response.body()).bytes();
             log.debug("send get method request success, url:{}", url);
         } catch (Exception e) {
             log.error("send get method request error, url:{}", url, e);
             throw new RuntimeException(e);
         } finally {
-            Util.closeQuietly(response);
+            Util.closeQuietly(Objects.requireNonNull(response));
         }
         return result;
     }
 
     /**
      * post请求(默认为utf-8编码)
-     *
-     * @param url
-     * @param msg
-     * @param contentType
-     * @return
-     * @since 0512
      */
     public static String post(String url, String msg, String contentType) {
         MediaType mediaType = MediaType.parse(contentType);
-        RequestBody requestBody = RequestBody.create(mediaType, msg);
+        RequestBody requestBody = RequestBody.create(msg, mediaType);
         Request request = new Request.Builder().url(url).post(requestBody).build();
         Response response = null;
-        String result = null;
+        String result;
         try {
             reqLog(url, msg);
             response = CLIENT.newCall(request).execute();
             if (!response.isSuccessful())
                 throw new IOException("Unexpected code " + response);
-            result = response.body().string();
+            result = Objects.requireNonNull(response.body()).string();
             respLog(url, result);
             log.debug("send post method request success, url:{}", url);
         } catch (Exception e) {
             log.error("send post method request error, url:{}", url, e);
             throw new RuntimeException(e);
         } finally {
-            Util.closeQuietly(response);
+            Util.closeQuietly(Objects.requireNonNull(response));
         }
         return result;
     }
 
     public static String postJson(String url, String msg) {
-        MediaType mediaType = MediaType.parse(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE);
-        RequestBody requestBody = RequestBody.create(mediaType, msg);
-        Request request = new Request.Builder() //
-                .header("Accept", "application/json;charset=utf-8") //
-                .url(url) //
-                .post(requestBody) //
-                .build(); //
+        MediaType mediaType = MediaType.parse(org.springframework.http.MediaType.APPLICATION_JSON_VALUE);
+        RequestBody requestBody = RequestBody.create(msg, mediaType);
+        Request request = new Request.Builder()
+                .header("Accept", org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
+                .url(url)
+                .post(requestBody)
+                .build();
         Response response = null;
-        String result = null;
+        String result;
         try {
             reqLog(url, msg);
             response = CLIENT.newCall(request).execute();
             if (!response.isSuccessful())
                 throw new IOException("Unexpected code " + response);
-            result = response.body().string();
+            result = Objects.requireNonNull(response.body()).string();
             respLog(url, result);
             log.debug("send post method request success, url:{}", url);
         } catch (Exception e) {
             log.error("send post method request error, url:{}", url, e);
             throw new RuntimeException(e);
         } finally {
-            Util.closeQuietly(response);
+            Util.closeQuietly(Objects.requireNonNull(response));
         }
         return result;
     }
 
     /**
      * post一个文件
-     *
-     * @param url
-     * @param msg
-     * @return
-     * @since 0512
      */
     public static String postFile(String url, File msg) {
-        MediaType mediaType = MediaType.parse("application/octet-stream");
-        RequestBody requestBody = RequestBody.create(mediaType, msg);
-        Request request = new Request.Builder() //
-                .url(url) //
-                .post(requestBody) //
-                .build(); //
+        MediaType mediaType = MediaType.parse(org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE);
+        RequestBody requestBody = RequestBody.create(msg, mediaType);
+        Request request = new Request.Builder()
+                .url(url)
+                .post(requestBody)
+                .build();
         Response response = null;
-        String result = null;
+        String result;
         try {
             reqLog(url, msg.toString());
             response = CLIENT.newCall(request).execute();
             if (!response.isSuccessful())
                 throw new IOException("Unexpected code " + response);
-            result = response.body().string();
+            result = Objects.requireNonNull(response.body()).string();
             respLog(url, result);
             log.debug("send postFile method request success, url:{}, file:{}", url, msg);
         } catch (Exception e) {
             log.error("send postFile method request error, url:{}", url, e);
             throw new RuntimeException(e);
         } finally {
-            Util.closeQuietly(response);
+            Util.closeQuietly(Objects.requireNonNull(response));
         }
         return result;
     }
 
     /**
      * Post方式提交分块请求(支持String， File类型)
-     *
-     * @param url
-     * @param msg
-     * @return
-     * @throws Exception
-     * @since 0512
      */
     public static String postPartForm(String url, Map<String, Object> msg) {
         RequestBody requestBody = createMultipartBody(msg);
-        Request request = new Request.Builder() //
-                .url(url) //
-                .post(requestBody)//
-                .build();//
+        Request request = new Request.Builder()
+                .url(url)
+                .post(requestBody)
+                .build();
         Response response = null;
-        String result = null;
+        String result;
         try {
             reqLog(url, msg.toString());
             response = CLIENT.newCall(request).execute();
             if (!response.isSuccessful())
                 throw new IOException("Unexpected code " + response);
-            result = response.body().string();
+            result = Objects.requireNonNull(response.body()).string();
             respLog(url, result);
             log.debug("send postForm method request success, url:{}, params:{}", url, msg);
         } catch (Exception e) {
             log.error("send postForm method request error, url:{}", url, e);
             throw new RuntimeException(e);
         } finally {
-            Util.closeQuietly(response);
+            Util.closeQuietly(Objects.requireNonNull(response));
         }
         return result;
     }
 
     /**
      * 以form表单的方式提交post请求(urlencoder编码)
-     *
-     * @param url
-     * @param msg
-     * @return
-     * @since 0512
      */
     public static String postForm(String url, Map<String, String> msg) {
         FormBody.Builder requestBodyBuilder = new FormBody.Builder();
@@ -273,39 +230,39 @@ public class HttpUtils {
             requestBodyBuilder.add(key, msg.get(key));
         }
         RequestBody requestBody = requestBodyBuilder.build();
-        Request request = new Request.Builder() //
-                .url(url) //
-                .post(requestBody) //
-                .build(); //
+        Request request = new Request.Builder()
+                .url(url)
+                .post(requestBody)
+                .build();
         Response response = null;
-        String result = null;
+        String result;
         try {
             reqLog(url, msg.toString());
             response = CLIENT.newCall(request).execute();
             if (!response.isSuccessful())
                 throw new IOException("Unexpected code " + response);
-            result = response.body().string();
+            result = Objects.requireNonNull(response.body()).string();
             respLog(url, result);
             log.debug("send postForm method request success, url:{}", url);
         } catch (Exception e) {
             log.error("send postForm method request error, url:{}", url, e);
             throw new RuntimeException(e);
         } finally {
-            Util.closeQuietly(response);
+            Util.closeQuietly(Objects.requireNonNull(response));
         }
         return result;
     }
 
     public static String putJson(String url, String msg) {
-        MediaType mediaType = MediaType.parse(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE);
-        RequestBody requestBody = RequestBody.create(mediaType, msg);
+        MediaType mediaType = MediaType.parse(org.springframework.http.MediaType.APPLICATION_JSON_VALUE);
+        RequestBody requestBody = RequestBody.create(msg, mediaType);
         Request request = new Request.Builder()
-                .header("Accept", "application/json;charset=utf-8")
+                .header("Accept", org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
                 .url(url)
                 .put(requestBody)
                 .build();
         Response response = null;
-        String result = null;
+        String result;
         try {
             reqLog(url, msg);
             response = CLIENT.newCall(request).execute();
@@ -319,16 +276,13 @@ public class HttpUtils {
             log.error("send put method request error, url:{}", url, e);
             throw new RuntimeException("http请求错误: " + e.getMessage(), e);
         } finally {
-            Util.closeQuietly(response);
+            Util.closeQuietly(Objects.requireNonNull(response));
         }
         return result;
     }
 
     /**
      * Url转码
-     *
-     * @param url
-     * @return
      */
     public static String getEncodeUrl(String url) {
         String realUrl = "";
@@ -343,9 +297,6 @@ public class HttpUtils {
 
     /**
      * Url解码
-     *
-     * @param url
-     * @return
      */
     public static String getDecodeUrl(String url) {
         String realUrl = "";
@@ -360,13 +311,10 @@ public class HttpUtils {
 
     /**
      * 构建分块请求body
-     *
-     * @param msg
-     * @return
      */
     private static MultipartBody createMultipartBody(Map<String, Object> msg) {
-        MultipartBody.Builder requestBodyBuilder = new MultipartBody.Builder() //
-                .setType(MultipartBody.FORM); //
+        MultipartBody.Builder requestBodyBuilder = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM);
         for (String name : msg.keySet()) {
             Object data = msg.get(name);
             if (data instanceof String || data instanceof Long || data instanceof Integer) {
@@ -375,8 +323,6 @@ public class HttpUtils {
             } else if (data instanceof File) {
                 File file = (File) data;
                 requestBodyBuilder.addPart(createFilePart(name, file));
-            } else {
-                // do nothing;
             }
         }
         return requestBodyBuilder.build();
@@ -384,25 +330,19 @@ public class HttpUtils {
 
     /**
      * 构建String类型part
-     *
-     * @return
      */
     private static Part createStringPart(String name, String value) {
         return Part.create(Headers.of("Content-Disposition", "form-data; name=" + name),
-                RequestBody.create(null, value));
+                RequestBody.create(value, null));
     }
 
     /**
      * 构建file类型part
-     *
-     * @param name
-     * @param file
-     * @return
      */
     private static Part createFilePart(String name, File file) {
         String fileName = JniInvokeUtils.currentTimeMillis() + "." + file.getName().split("\\.")[1];
         String suffix = file.getName().split("\\.")[1];
-        MediaType mediaType = null;
+        MediaType mediaType;
 
         if ("png".equals(suffix)) {
             mediaType = MediaType.parse("image/png");
@@ -415,47 +355,40 @@ public class HttpUtils {
         }
 
         return Part.create(Headers.of("Content-Disposition", "form-data; name=" + name + "; filename=" + fileName),
-                RequestBody.create(mediaType, file));
+                RequestBody.create(file, mediaType));
     }
 
     /**
      * post请求(默认为utf-8编码)
-     *
-     * @param url
-     * @param msg
-     * @param contentType
-     * @return
-     * @since 0512
      */
     public static Map<String, String> apiPost(String url, String msg, String contentType) {
         MediaType mediaType = MediaType.parse(contentType);
-        RequestBody requestBody = RequestBody.create(mediaType, msg);
-        Request request = new Request.Builder() //
-                .url(url) //
-                .post(requestBody) //
-                .build(); //
+        RequestBody requestBody = RequestBody.create(msg, mediaType);
+        Request request = new Request.Builder()
+                .url(url)
+                .post(requestBody)
+                .build();
         Response response = null;
-        String result = null;
+        String result;
         Map<String, String> map = new HashMap<>();
         try {
             response = CLIENT.newCall(request).execute();
             map.put("response", response.code() + "");
             if (!response.isSuccessful())
                 throw new IOException("Unexpected code " + response);
-            result = response.body().string();
+            result = Objects.requireNonNull(response.body()).string();
             map.put("body", result);
             log.debug("send post method request success, url:{}", url);
         } catch (Exception e) {
             log.error("send post method request error, url:{}", url, e);
             map.put("body", e.getMessage());
         } finally {
-            Util.closeQuietly(response);
+            Util.closeQuietly(Objects.requireNonNull(response));
         }
         return map;
     }
 
     public static String get(String url, Map<String, String> headers) {
-        //header
         Request.Builder requestBuilder = new Request.Builder();
         requestBuilder.url(url);
         if (headers != null) {
@@ -465,25 +398,24 @@ public class HttpUtils {
         }
         Request request = requestBuilder.build();
         Response response = null;
-        String result = null;
+        String result;
         try {
             response = CLIENT.newCall(request).execute();
             if (!response.isSuccessful()) {
                 throw new IOException("Unexpected code " + response);
             }
-            result = response.body().string();
+            result = Objects.requireNonNull(response.body()).string();
             log.debug("send get method request success, url:{}", url);
         } catch (Exception e) {
             log.error("send get method request error, url:{}", url, e);
             throw new RuntimeException(e);
         } finally {
-            Util.closeQuietly(response);
+            Util.closeQuietly(Objects.requireNonNull(response));
         }
         return result;
     }
 
     public static String postJson(String url, Map<String, String> headers, String body) {
-        //header
         Request.Builder requestBuilder = new Request.Builder();
         requestBuilder.url(url);
         if (headers != null) {
@@ -491,9 +423,8 @@ public class HttpUtils {
                 requestBuilder.header(header.getKey(), header.getValue());
             }
         }
-        //body
-        MediaType mediaType = MediaType.parse(org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE);
-        RequestBody requestBody = RequestBody.create(mediaType, body);
+        MediaType mediaType = MediaType.parse(org.springframework.http.MediaType.APPLICATION_JSON_VALUE);
+        RequestBody requestBody = RequestBody.create(body, mediaType);
         requestBuilder.post(requestBody);
         Request request = requestBuilder.build();
         Response response = null;
@@ -504,13 +435,13 @@ public class HttpUtils {
                 log.error("Unexpected code " + response);
                 throw new IOException("Unexpected code " + response);
             }
-            result = response.body().string();
+            result = Objects.requireNonNull(response.body()).string();
             log.debug("request success");
         } catch (Exception e) {
             log.error("request error:{} ", e.getMessage(), e);
             throw new RuntimeException(e);
         } finally {
-            Util.closeQuietly(response);
+            Util.closeQuietly(Objects.requireNonNull(response));
         }
         return result;
     }

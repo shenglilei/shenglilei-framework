@@ -110,10 +110,7 @@ public final class JwtUtil {
      */
     public static Claims parseJWT(String issuer, String jsonWebToken, String base64Security) {
         try {
-            return Jwts.parser()
-                    .requireIssuer(issuer)
-                    .setSigningKey(generalKey(base64Security))
-                    .parseClaimsJws(jsonWebToken).getBody();
+            return Jwts.parserBuilder().requireIssuer(issuer).setSigningKey(generalKey(base64Security)).build().parseClaimsJws(jsonWebToken).getBody();
         } catch (Exception e) {
             log.error("parseJWT error.", e);
             return null;

@@ -8,13 +8,9 @@ import org.springframework.http.MediaType;
 public class Constants {
     public static final String RESPONSE_HEADER_KEY_TRACE_ID = "traceId";
 
-    public static final String RESPONSE_HEADER_VALUE_CONTENT_TYPE = MediaType.APPLICATION_JSON_UTF8_VALUE;
+    public static final String RESPONSE_HEADER_VALUE_CONTENT_TYPE = MediaType.APPLICATION_JSON_VALUE;
     /**
      * 当前应用的名称
      */
     public static String APPLICATION_NAME;
-    /**
-     * 启用熔断器，并设置隔离车略是线程池
-     */
-    public static Boolean HYSTRIX_STRATEGY_THREAD = false;
 }
