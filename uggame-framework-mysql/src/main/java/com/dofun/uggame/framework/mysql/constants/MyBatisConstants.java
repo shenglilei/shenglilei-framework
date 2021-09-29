@@ -1,6 +1,6 @@
 package com.dofun.uggame.framework.mysql.constants;
 
-import static com.dofun.uggame.framework.common.Constants.SYSTEM_DEFAULT_PACKAGE_ROOT;
+import static com.dofun.uggame.framework.common.constants.Constants.SYSTEM_DEFAULT_PACKAGE_ROOT;
 
 /**
  * MyBatis常量

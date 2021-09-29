@@ -1,7 +1,9 @@
 package com.dofun.uggame.framework.core.swagger;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -17,6 +19,7 @@ import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,11 +32,16 @@ import java.util.List;
 @Configuration
 @Import(SwaggerProperties.class)
 public class SwaggerAutoConfiguration {
+    @Value("${server.port}")
+    private int port;
 
+    @Value("${server.servlet.context-path}")
+    private String baseUrl;
 
     @Autowired(required = false)
     private SwaggerProperties properties;
 
+    @SneakyThrows
     @Bean
     public Docket createRestApi() {
         Docket docket = new Docket(DocumentationType.SWAGGER_2)
@@ -43,7 +51,13 @@ public class SwaggerAutoConfiguration {
                 .paths(PathSelectors.any())
                 .build()
                 .globalOperationParameters(getGlobalParameters());
-        log.info("Swagger2 ready to inject.");
+        String ip = InetAddress.getLocalHost().getHostAddress();
+        String builder = "http://" + ip +
+                ":" +
+                port +
+                baseUrl;
+        log.info("Swagger2 ready to inject");
+        log.warn("Swagger使用地址:" + builder + "swagger-ui.html");
         return docket;
     }
 

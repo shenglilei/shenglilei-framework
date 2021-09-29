@@ -9,7 +9,8 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.ComponentScan;
 
-import static com.dofun.uggame.framework.common.Constants.SYSTEM_DEFAULT_PACKAGE_ROOT;
+import static com.dofun.uggame.framework.common.constants.Constants.SYSTEM_DEFAULT_PACKAGE_ROOT;
+
 
 @Slf4j
 @ServletComponentScan

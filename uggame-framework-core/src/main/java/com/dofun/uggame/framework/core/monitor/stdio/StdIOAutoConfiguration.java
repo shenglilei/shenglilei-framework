@@ -28,7 +28,8 @@ import javax.servlet.ServletResponse;
 import java.io.*;
 import java.util.List;
 
-import static com.dofun.uggame.framework.common.Constants.SYSTEM_DEFAULT_PACKAGE_ROOT;
+import static com.dofun.uggame.framework.common.constants.Constants.SYSTEM_DEFAULT_PACKAGE_ROOT;
+
 
 /**
  * 记录RestController 方法执行的输入/输出
@@ -128,7 +129,6 @@ public class StdIOAutoConfiguration {
                 throw t;
             } finally {
                 watch.stop();
-                logger.info("接口耗时: " + (watch.getTotalTimeMillis()) + "ms");
                 stdOutOrError(throwable, result, pjp, watch.getTotalTimeMillis());
             }
             return result;
