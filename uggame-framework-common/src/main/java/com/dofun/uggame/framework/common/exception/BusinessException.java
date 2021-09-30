@@ -19,7 +19,7 @@ public class BusinessException extends RuntimeException {
 
     public BusinessException(String message) {
         super(message);
-        this.errorCode = CommonError.UNKNOWN_ERROR.getCode();
+        this.errorCode = CommonError.BUSINESS_ERROR.getCode();
     }
 
     public BusinessException(BaseError error) {
@@ -29,7 +29,7 @@ public class BusinessException extends RuntimeException {
 
     public BusinessException(Throwable throwable) {
         super(throwable.getMessage(), throwable);
-        this.errorCode = CommonError.UNKNOWN_ERROR.getCode();
+        this.errorCode = CommonError.BUSINESS_ERROR.getCode();
     }
 
     public BusinessException(Integer erorCode, String errorMsg) {

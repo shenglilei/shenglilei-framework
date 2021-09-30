@@ -1,8 +1,11 @@
 package com.dofun.uggame.framework.core.monitor.stdio;
 
 
+import brave.Span;
+import brave.Tracer;
 import com.alibaba.fastjson.JSON;
 import com.dofun.uggame.framework.core.monitor.constants.AspectjOrder;
+import com.dofun.uggame.framework.core.utils.ResponseUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -11,9 +14,6 @@ import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
-import org.aspectj.lang.reflect.SourceLocation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -22,9 +22,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.util.List;
 
@@ -43,15 +43,14 @@ import static com.dofun.uggame.framework.common.constants.Constants.SYSTEM_DEFAU
 @Configuration
 public class StdIOAutoConfiguration {
 
-    private Logger logger;
-
     @Autowired(required = false)
     private StdIOProperties stdIOProperties;
 
-    @PostConstruct
-    void init() {
-        logger = log;
-    }
+    @Autowired
+    private Tracer tracer;
+
+    @Autowired
+    private HttpServletResponse response;
 
     public Boolean intFilter(String controller, String methodName) {
         if (stdIOProperties.getInFilter() != null && stdIOProperties.getInFilter().getMethods() != null) {
@@ -147,61 +146,55 @@ public class StdIOAutoConfiguration {
             //过滤输出项
             Signature signature = pjp.getSignature();
             if (signature == null) {
-                logger.warn("signature is null,should fix quickly.");
+                log.warn("signature is null,should fix quickly.");
             } else {
                 String controller = signature.getDeclaringTypeName();
                 String method = controller + "." + signature.getName();
                 if (outFilter(controller, method)) {
-                    logger.warn(method + " can not print out.");
+                    log.warn(method + " can not print out.");
                     return;
                 }
             }
-
-            logger.info("接口耗时：" + cost + ",响应参数:" + (result == null ? "null" : print(result)));
+            //输出traceId
+            Span span = tracer.currentSpan();
+            ResponseUtil.trace(response, span.context().traceIdString());
+            log.info("接口耗时：" + cost + ",响应参数:" + (result == null ? "null" : print(result)));
         }
 
         private void stdError(Throwable throwable, Object result, long cost) {
-            logger.error("接口错误响应信息:" + throwable.getMessage() + ",耗时：" + cost + ",响应参数:" + (result == null ? "null" : print(result)), throwable);
+            log.error("接口异常响应信息:" + throwable.getMessage() + ",耗时：" + cost + ",响应参数:" + (result == null ? "null" : print(result)), throwable);
         }
 
         private void stdIn(ProceedingJoinPoint pjp) {
             if (pjp == null) {
-                logger.warn("ProceedingJoinPoint is null,should fix quickly.");
+                log.warn("ProceedingJoinPoint is null,should fix quickly.");
                 return;
-            }
-            SourceLocation sourceLocation = pjp.getSourceLocation();
-            if (sourceLocation == null) {
-                logger.warn("sourceLocation is null,should fix quickly.");
-            } else {
-                Class classes = sourceLocation.getWithinType();
-                logger = LoggerFactory.getLogger(classes);
             }
             Signature signature = pjp.getSignature();
             if (signature == null) {
-                logger.warn("signature is null,should fix quickly.");
+                log.warn("signature is null,should fix quickly.");
             } else {
                 String controller = signature.getDeclaringTypeName();
-                logger.info("请求的接口代码，controller class：{}，method：{}", controller, signature.getName());
+                log.info("请求的接口代码，controller class：{}，方法名：{}", controller, signature.getName());
                 if (intFilter(controller, signature.getName())) {
-                    logger.warn(signature.getName() + " can not print in .");
+                    log.warn(signature.getName() + " can not print in .");
                     return;
                 }
             }
             Object[] args = pjp.getArgs();
             if (args == null) {
-                logger.warn("args is null,should fix quickly.");
+                log.warn("args is null,should fix quickly.");
                 return;
             }
             int argsLength = args.length;
             if (argsLength <= 0) {
-                logger.debug("args is empty.");
                 return;
             }
-            logger.info("请求参数对象个数:" + argsLength);
+            log.info("请求参数对象个数:" + argsLength);
             Object arg;
             for (int i = 1; i <= argsLength; i++) {
                 arg = args[i - 1];
-                logger.info("第 " + i + "个请求参数的值:" + print(arg));
+                log.info("第 " + i + "个请求参数的值:" + print(arg));
             }
         }
 

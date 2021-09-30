@@ -82,6 +82,14 @@ public class WebApiResponse<T extends BaseResponseParam> implements Serializable
         return response;
     }
 
+    public static <T extends BaseResponseParam> WebApiResponse<T> error(BaseError error, String extendMessage) {
+        WebApiResponse<T> response = new WebApiResponse<>();
+        response.setStatus(FAILED_STATUS);
+        response.setErrcode(error.getCode());
+        response.setMsg(error.getMessage() + ":" + extendMessage);
+        return response;
+    }
+
     public static <T extends BaseResponseParam> WebApiResponse<T> error(String message) {
         WebApiResponse<T> response = new WebApiResponse<>();
         response.setStatus(FAILED_STATUS);
@@ -122,7 +130,7 @@ public class WebApiResponse<T extends BaseResponseParam> implements Serializable
      */
     public static <T extends BaseResponseParam> WebApiResponse<T> paramsError(String message) {
         WebApiResponse<T> response = new WebApiResponse<>();
-        response.setErrcode(CommonError.PARAMETER_ERROR.getCode());
+        response.setErrcode(CommonError.ILLEGAL_PARAMETER.getCode());
         response.setMsg(message);
         return response;
     }
