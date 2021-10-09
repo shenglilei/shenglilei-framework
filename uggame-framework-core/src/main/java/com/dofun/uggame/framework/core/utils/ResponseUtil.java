@@ -6,6 +6,7 @@ import com.dofun.uggame.framework.common.utils.XXSFilterUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.StringUtils;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -24,7 +25,9 @@ public class ResponseUtil {
             return;
         }
         response.setStatus(status.value());
-        response.setHeader(HttpHeaders.CONTENT_TYPE, Constants.RESPONSE_HEADER_VALUE_CONTENT_TYPE);
+        if (!StringUtils.hasLength(response.getHeader(HttpHeaders.CONTENT_TYPE))) {
+            response.setHeader(HttpHeaders.CONTENT_TYPE, Constants.RESPONSE_HEADER_VALUE_CONTENT_TYPE);
+        }
         try (Writer writer = response.getWriter()) {
             if (writer != null) {
                 response.setCharacterEncoding(StandardCharsets.UTF_8.name());
