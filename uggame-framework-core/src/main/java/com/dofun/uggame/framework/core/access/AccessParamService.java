@@ -52,6 +52,10 @@ public class AccessParamService {
                 m.invoke(baseRequestParam, getLongValue(valueFromParameter));
             } else if (fieldType.equals(String.class.toString())) {
                 m.invoke(baseRequestParam, valueFromParameter);
+            } else if (fieldType.equals(Integer.class.toString())) {
+                m.invoke(baseRequestParam, Integer.valueOf(valueFromParameter));
+            } else if (fieldType.equals(Boolean.class.toString())) {
+                m.invoke(baseRequestParam, Boolean.valueOf(valueFromParameter));
             }
             log.debug("field {} value has change by request parameter.{} -> {}", fieldName, valueFromObj, valueFromParameter);
         }
@@ -89,22 +93,26 @@ public class AccessParamService {
                 m.invoke(baseRequestParam, getLongValue(valueFromHeader));
             } else if (fieldType.equals(String.class.toString())) {
                 m.invoke(baseRequestParam, valueFromHeader);
+            } else if (fieldType.equals(Integer.class.toString())) {
+                m.invoke(baseRequestParam, Integer.valueOf(valueFromHeader));
+            } else if (fieldType.equals(Boolean.class.toString())) {
+                m.invoke(baseRequestParam, Boolean.valueOf(valueFromHeader));
             }
             log.debug("field {} value has change by header key{}.{} -> {}", fieldName, headName, valueFromObj, valueFromHeader);
         }
     }
 
-    Long getLongValue(String headerValue) {
-        return Long.valueOf(headerValue);
+    Long getLongValue(String value) {
+        return Long.valueOf(value);
     }
 
     /**
      * 判断是不是内部微服务之间的接口调用
      */
     private boolean isInnerCall(BaseRequestParam baseRequestParam, String endPoint) {
-        if (StringUtils.isNotBlank(baseRequestParam.getReqEndPoint()) && ReqEndPointEnum.INNER_MS_CLIENT.getName().equals(baseRequestParam.getReqEndPoint())) {
+        if (StringUtils.isNotBlank(baseRequestParam.getReqEndPoint()) && ReqEndPointEnum.INNER_MICRO_SERVICE.getName().equals(baseRequestParam.getReqEndPoint())) {
             return true;
         }
-        return StringUtils.isNotBlank(baseRequestParam.getReqEndPoint()) && ReqEndPointEnum.INNER_MS_CLIENT.getName().equals(endPoint);
+        return StringUtils.isNotBlank(baseRequestParam.getReqEndPoint()) && ReqEndPointEnum.INNER_MICRO_SERVICE.getName().equals(endPoint);
     }
 }
