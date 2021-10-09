@@ -28,23 +28,34 @@ public enum ReqEndPointEnum {
      */
     ANDROID_APP("androidApp"),
     /**
+     * Android 内嵌的H5页面-租客使用
+     */
+    ANDROID_H5("androidH5"),
+    /**
      * 内部系统使用
      * <p>
-     * 例如从PHP发起的调用
+     * 从PHP发起的调用
      */
-    INNER_SYSTEM_CLIENT("innerSystemClient"),
+    INNER_SYSTEM_CLIENT_PHP("innerSystemClientPHP"),
+
+    /**
+     * 内部系统使用
+     * <p>
+     * 从Nodejs发起的调用
+     */
+    INNER_SYSTEM_CLIENT_NODEJS("innerSystemClientNodejs"),
     /**
      * 内部微服务使用
      * <p>
      * 例如从service-usercenter微服务发起的调用
      */
-    INNER_MS_CLIENT("innerMicroService"),
+    INNER_MICRO_SERVICE("innerMicroService"),
     /**
      * 第三方-外部系统使用
      * <p>
      * 例如Garena改密客户端，运行在Windows平台
      */
-    THIRD_PARTY_CLIENT("thirdPartyClient"),
+    THIRD_PARTY_SYSTEM_CLIENT("thirdPartySystemClient"),
     ;
 
     private final String name;
