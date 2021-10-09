@@ -12,6 +12,10 @@ import org.apache.commons.lang3.StringUtils;
  */
 public enum RoleEnum {
     /**
+     * 游客
+     */
+    ANONYMOUS("anonymous"),
+    /**
      * 号主
      */
     SELLER("seller"),
