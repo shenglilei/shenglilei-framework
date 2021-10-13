@@ -3,6 +3,8 @@
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
     <jmxConfigurator/>
     <springProperty scope="context" name="logFilePrefix" source="spring.application.name"/>
+    <springProperty scope="context" name="kafkaIpPort" source="spring.kafka.bootstrap-servers"/>
+    <springProperty scope="context" name="kafkaTopic" source="spring.kafka.topic"/>
     <property name="LOG_HOME" value="logs"/>
     <property name="LOG_PREFIX" value="${logFilePrefix}"/>
 
@@ -167,6 +169,23 @@
         <appender-ref ref="ERROR_FILE"/>
     </appender>
 
+   <!-- <appender name="kafka" class="com.github.danielwegener.logback.kafka.KafkaAppender">
+        <encoder class="com.github.danielwegener.logback.kafka.encoding.LayoutKafkaMessageEncoder">
+            <layout class="net.logstash.logback.layout.LogstashLayout">
+                <includeContext>true</includeContext>
+                <includeCallerData>true</includeCallerData>
+                <customFields>{"system":"test"}</customFields>
+                <fieldNames class="net.logstash.logback.fieldnames.ShortenedFieldNames"/>
+            </layout>
+            <charset>UTF-8</charset>
+        </encoder>
+        &lt;!&ndash;kafka topic 需要与配置文件里面的topic一致 &ndash;&gt;
+        <topic>${kafkaTopic}</topic>
+        <keyingStrategy class="com.github.danielwegener.logback.kafka.keying.HostNameKeyingStrategy"/>
+        <deliveryStrategy class="com.github.danielwegener.logback.kafka.delivery.AsynchronousDeliveryStrategy"/>
+        <producerConfig>bootstrap.servers=${kafkaIpPort}</producerConfig>
+    </appender>-->
+
 
     <logger name="springfox" level="WARN"/>
     <logger name="tk.mybatis" level="WARN"/>
@@ -212,13 +231,14 @@
     <logger name="reactor" level="WARN"/>
     <logger name="io.micrometer.core" level="WARN"/>
     <logger name="com.dofun.uggame.common.util" level="WARN"/>
-
-    <root level="DEBUG">
+    <!-- 日志会写到文件和kafka中，后期写入文件的配置可以删除 -->
+    <root level="INFO">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="TRACE_FILE_ASYNC"/>
         <appender-ref ref="DEBUG_FILE_ASYNC"/>
         <appender-ref ref="INFO_FILE_ASYNC"/>
         <appender-ref ref="WARN_FILE_ASYNC"/>
         <appender-ref ref="ERROR_FILE_ASYNC"/>
+       <!-- <appender-ref ref="kafka"/>-->
     </root>
 </included>
