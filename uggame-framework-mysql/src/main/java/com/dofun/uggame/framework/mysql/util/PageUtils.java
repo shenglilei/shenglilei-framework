@@ -1,5 +1,6 @@
 package com.dofun.uggame.framework.mysql.util;
 
+import com.dofun.uggame.framework.common.base.BasePageResponseParam;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.BeanUtils;
 
@@ -10,6 +11,20 @@ import java.util.List;
  * 分页工具类
  */
 public class PageUtils {
+
+    /**
+     * 转换成基础的分页响应参数对象
+     */
+    public static <T> BasePageResponseParam<T> asPageResponse(PageInfo<T> pageInfo) {
+
+        BasePageResponseParam<T> pageResponseParam = new BasePageResponseParam<>();
+        pageResponseParam.setPageNum(pageResponseParam.getPageNum());
+        pageResponseParam.setPageSize(pageResponseParam.getPageSize());
+        pageResponseParam.setTotal(pageInfo.getTotal());
+        pageResponseParam.setPages(pageInfo.getPages());
+        pageResponseParam.setResult(pageInfo.getList());
+        return pageResponseParam;
+    }
 
     public static <T, R> void convert(PageInfo<T> pageInfo, PageInfo<R> newPageInfo) {
         newPageInfo.setPageNum(pageInfo.getPageNum());

@@ -4,32 +4,26 @@ import com.alibaba.fastjson.JSON;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.*;
-import org.hibernate.validator.constraints.Range;
 
-import javax.validation.constraints.NotNull;
+import java.util.List;
 
-@ApiModel(description = "接口入参-分页-基类")
 @EqualsAndHashCode(callSuper = true)
+@ApiModel(description = "接口出参-分页-基类")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BasePageRequestParam extends BaseRequestParam {
-
-    /**
-     * 当前页码
-     */
+public class BasePageResponseParam<T> extends BaseResponseParam {
     @ApiModelProperty(value = "当前页码（从1开始）", example = "1")
-    @NotNull(message = "当前页码:不能为空")
-    @Range(message = "每页数据条数的值[1,]", min = 1)
     private Integer pageNum;
-    /**
-     * 每页数据条数
-     */
     @ApiModelProperty(value = "每页数据条数（1-1000）", example = "10")
-    @NotNull(message = "每页数据条数:不能为空")
-    @Range(message = "每页数据条数的值[1-1000]", min = 1, max = 1000)
     private Integer pageSize;
+    @ApiModelProperty(value = "总页数", example = "100")
+    private Integer pages;
+    @ApiModelProperty(value = "总条数", example = "10000")
+    private Long total;
+    @ApiModelProperty(value = "数据")
+    private List<T> result;
 
     @Override
     public String toString() {

@@ -59,9 +59,11 @@ public enum RoleEnum {
     }
 
     public static RoleEnum forName(String name) {
+        if (name == null) {
+            return null;
+        }
         for (RoleEnum endpoint : RoleEnum.values()) {
-            String epName = endpoint.getName();
-            if (StringUtils.equals(name, epName)) {
+            if (StringUtils.equals(name, endpoint.getName())) {
                 return endpoint;
             }
         }

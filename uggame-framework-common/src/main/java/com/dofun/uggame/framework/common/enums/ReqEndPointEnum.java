@@ -69,9 +69,11 @@ public enum ReqEndPointEnum {
     }
 
     public static ReqEndPointEnum forName(String name) {
+        if (StringUtils.isBlank(name)) {
+            return null;
+        }
         for (ReqEndPointEnum endpoint : ReqEndPointEnum.values()) {
-            String epName = endpoint.getName();
-            if (StringUtils.equals(name, epName)) {
+            if (StringUtils.equals(name, endpoint.getName())) {
                 return endpoint;
             }
         }

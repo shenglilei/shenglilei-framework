@@ -27,6 +27,12 @@ public class BaseRequestParam implements Serializable {
     /**
      * 详细定义见：com.dofun.uggame.framework.common.enums.RegionEnum
      */
+    @ApiModelProperty(notes = "所在国家语言Id（由网关填写 前端不传 ）", hidden = true)
+    public Integer languageId;
+
+    /**
+     * 详细定义见：com.dofun.uggame.framework.common.enums.RegionEnum
+     */
     @ApiModelProperty(notes = "所在国家区号（由网关填写 前端不传 ）", hidden = true)
     public Integer countryCode;
 

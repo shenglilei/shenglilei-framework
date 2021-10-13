@@ -26,7 +26,7 @@ public class AccessParamService {
      * 从request中获取head中的参数
      */
     public void setAccessParam(BaseRequestParam baseRequestParam, HttpServletRequest request) throws Exception {
-        String endPoint = request.getHeader(RequestParamHeaderEnum.END_POINT.getName());
+        String endPoint = request.getHeader(RequestParamHeaderEnum.REQ_END_POINT.getName());
         if (isInnerCall(baseRequestParam, endPoint)) {
             //内部接口调用不做任何操作
             return;
@@ -57,7 +57,7 @@ public class AccessParamService {
             } else if (fieldType.equals(Boolean.class.toString())) {
                 m.invoke(baseRequestParam, Boolean.valueOf(valueFromParameter));
             }
-            log.debug("field {} value has change by request parameter.{} -> {}", fieldName, valueFromObj, valueFromParameter);
+            log.debug("field {} value has change by request parameter, {} -> {}", fieldName, valueFromObj, valueFromParameter);
         }
     }
 
@@ -65,7 +65,7 @@ public class AccessParamService {
      * 从org.springframework.http.HttpHeaders中获取head中的参数
      */
     public void setAccessParam(BaseRequestParam baseRequestParam, HttpHeaders httpHeaders) throws Exception {
-        String endPoint = httpHeaders.getFirst(RequestParamHeaderEnum.END_POINT.getName());
+        String endPoint = httpHeaders.getFirst(RequestParamHeaderEnum.REQ_END_POINT.getName());
         if (isInnerCall(baseRequestParam, endPoint)) {
             //内部接口调用不做任何操作
             return;
@@ -98,7 +98,7 @@ public class AccessParamService {
             } else if (fieldType.equals(Boolean.class.toString())) {
                 m.invoke(baseRequestParam, Boolean.valueOf(valueFromHeader));
             }
-            log.debug("field {} value has change by header key{}.{} -> {}", fieldName, headName, valueFromObj, valueFromHeader);
+            log.debug("field {} value has change by header key:[{}] , {} -> {}", fieldName, headName, valueFromObj, valueFromHeader);
         }
     }
 
