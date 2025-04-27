@@ -15,8 +15,8 @@
 
         <dependency>
             <groupId>com.dofun</groupId>
-            <artifactId>uggame-framework-common</artifactId>
-            <version>${uggame.framework.version.main}</version>
+            <artifactId>shenglilei-framework-common</artifactId>
+            <version>${shenglilei.framework.version.main}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
