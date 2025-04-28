@@ -17,7 +17,7 @@ import static com.dofun.shenglilei.framework.common.constants.Constants.SYSTEM_D
 @EnableAutoConfiguration
 @ComponentScan(basePackages = {SYSTEM_DEFAULT_PACKAGE_ROOT + ".*"})
 @SpringBootConfiguration
-@EnableDiscoveryClient
+//@EnableDiscoveryClient
 @EnableFeignClients(basePackages = {SYSTEM_DEFAULT_PACKAGE_ROOT})
 public class BootStrapAutoConfiguration {
 }
