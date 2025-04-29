@@ -6,12 +6,12 @@ import com.dofun.shenglilei.framework.common.base.BaseResponseParam;
 import com.dofun.shenglilei.framework.common.error.impl.CommonError;
 import com.dofun.shenglilei.framework.common.exception.BusinessException;
 import com.dofun.shenglilei.framework.common.response.WebApiResponse;
+import com.dofun.shenglilei.framework.core.i18n.interfaces.I18n4InterfacesProcessor;
 import com.dofun.shenglilei.framework.core.utils.BeanValidatorUtils;
 import com.dofun.shenglilei.framework.core.utils.ResponseUtil;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
@@ -34,8 +34,9 @@ public class BaseGlobalExceptionHandler {
     @Autowired
     private Tracer tracer;
 
-    @Value("${server.error.visible:true}")
-    private Boolean errorVisible;
+    @SuppressWarnings("all")
+    @Autowired(required = false)
+    private I18n4InterfacesProcessor i18n4InterfacesProcessor;
 
     @PostConstruct
     public void init() {
@@ -47,28 +48,28 @@ public class BaseGlobalExceptionHandler {
      */
     @ExceptionHandler(value = BusinessException.class)
     public WebApiResponse<BaseResponseParam> businessExceptionHandler(HttpServletRequest req, HttpServletResponse response, BusinessException e) {
-        log.error("---BusinessException Handler---Host {} invokes url {} ERROR: {}", req.getRemoteHost() + ":" + req.getRemotePort(), req.getRequestURL(), e.toString());
+        log.error("---BusinessException Handler---Host {} invokes url {}", req.getRemoteHost() + ":" + req.getRemotePort(), req.getRequestURL(), e);
+        response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
         return responseError(e.getErrorCode(), e.getMessage(), response);
     }
 
     /**
-     * Feign远程调用的错误，原路返回
+     * Feign远程调用的错误
      */
     @ExceptionHandler(value = FeignException.class)
-    public void feignExceptionHandler(HttpServletRequest req, HttpServletResponse response, FeignException e) {
-        log.error("---FeignException Handler---Host {} invokes url {} ERROR: {}", req.getRemoteHost() + ":" + req.getRemotePort(), req.getRequestURL(), e.toString());
-        Span span = tracer.currentSpan();
-        if (span != null) {
-            ResponseUtil.trace(response, span.context().traceIdString());
-        }
+    public WebApiResponse<BaseResponseParam> feignExceptionHandler(HttpServletRequest req, HttpServletResponse response, FeignException e) {
+        log.error("---FeignException Handler---Host {} invokes url {}", req.getRemoteHost() + ":" + req.getRemotePort(), req.getRequestURL(), e);
+        response.setStatus(HttpStatus.resolve(e.status()) == null ? HttpStatus.INTERNAL_SERVER_ERROR.value() : e.status());
+        return responseError(CommonError.SYSTEM_ERROR.getCode(), CommonError.SYSTEM_ERROR.getMessage() + ": " + e.getMessage(), response);
     }
 
     /**
-     * 其它异常，转换为自定义结构
+     * 其它异常
      */
     @ExceptionHandler(value = Throwable.class)
     public WebApiResponse<BaseResponseParam> defaultErrorHandler(HttpServletRequest req, HttpServletResponse response, Throwable e) {
-        log.error("---DefaultException Handler---Host {} invokes url {} ERROR: {}", req.getRemoteHost() + ":" + req.getRemotePort(), req.getRequestURL(), e.toString());
+        log.error("---DefaultException Handler---Host {} invokes url {}", req.getRemoteHost() + ":" + req.getRemotePort(), req.getRequestURL(), e);
+        response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
         return responseError(CommonError.UNKNOWN_ERROR.getCode(), CommonError.UNKNOWN_ERROR.getMessage() + ": " + e.getMessage(), response);
     }
 
@@ -77,7 +78,7 @@ public class BaseGlobalExceptionHandler {
      */
     @ExceptionHandler(value = {MethodArgumentNotValidException.class, BindException.class, IllegalArgumentException.class})
     public WebApiResponse<BaseResponseParam> paramNotValidErrorHandler(HttpServletRequest req, HttpServletResponse response, Exception e) {
-        log.error("---{} Handler---Host {} invokes url {} ERROR: {}", e.getClass().getSimpleName(), req.getRemoteHost() + ":" + req.getRemotePort(), req.getRequestURL(), e.toString());
+        log.error("---{} Handler---Host {} invokes url {}", e.getClass().getSimpleName(), req.getRemoteHost() + ":" + req.getRemotePort(), req.getRequestURL(), e);
         BindingResult bindingResult;
         String errorMsg = e.getMessage();
         if (e instanceof MethodArgumentNotValidException) {
@@ -91,17 +92,20 @@ public class BaseGlobalExceptionHandler {
         } else if (e instanceof IllegalArgumentException) {
             errorMsg = e.getMessage();
         }
+        response.setStatus(HttpStatus.BAD_REQUEST.value());
         return responseError(CommonError.ILLEGAL_PARAMETER.getCode(), CommonError.ILLEGAL_PARAMETER.getMessage() + ": " + errorMsg, response);
     }
 
     private WebApiResponse<BaseResponseParam> responseError(int errorCode, String errorMsg, HttpServletResponse response) {
-        if (!errorVisible) {
-            errorMsg = HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase();
-        }
         Span span = tracer.currentSpan();
-        if (span != null) {
-            ResponseUtil.trace(response, span.context().traceIdString());
+        if (span == null) {
+            span = tracer.nextSpan();
         }
-        return WebApiResponse.error(errorCode, errorMsg);
+        ResponseUtil.trace(response, span.context().traceIdString());
+        WebApiResponse<BaseResponseParam> webApiResponse = WebApiResponse.error(errorCode, errorMsg);
+        if (i18n4InterfacesProcessor != null) {
+            i18n4InterfacesProcessor.translate(webApiResponse);
+        }
+        return webApiResponse;
     }
 }

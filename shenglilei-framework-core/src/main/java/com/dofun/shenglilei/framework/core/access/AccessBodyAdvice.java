@@ -2,8 +2,13 @@ package com.dofun.shenglilei.framework.core.access;
 
 import com.alibaba.fastjson.JSON;
 import com.dofun.shenglilei.framework.common.base.BaseRequestParam;
+import com.dofun.shenglilei.framework.common.tenant.TenantInfoHolder;
+import com.dofun.shenglilei.framework.common.utils.TimezoneUtil;
+import com.dofun.shenglilei.framework.core.trace.TraceAdviceService;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpInputMessage;
@@ -13,6 +18,9 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.RequestBodyAdviceAdapter;
 
 import java.lang.reflect.Type;
+import java.util.Objects;
+
+import static com.dofun.shenglilei.framework.common.constants.Constants.*;
 
 /**
  * 扩展springmvc的入参，针对@RequestBody的参数做拦截处理；
@@ -24,9 +32,17 @@ import java.lang.reflect.Type;
 @Slf4j
 @ControllerAdvice
 public class AccessBodyAdvice extends RequestBodyAdviceAdapter {
+    @Autowired
+    Tracer tracer;
 
     @Autowired
-    private AccessParamService accessParamService;
+    private TraceAdviceService traceAdviceService;
+
+    @Autowired
+    private com.dofun.shenglilei.framework.core.access.AccessParamService accessParamService;
+
+    @Autowired
+    private TenantInfoHolder tenantInfoHolder;
 
     /**
      * 返回true表示启动拦截
@@ -41,18 +57,25 @@ public class AccessBodyAdvice extends RequestBodyAdviceAdapter {
      */
     @Override
     public Object afterBodyRead(@NonNull Object body, @NonNull HttpInputMessage inputMessage, @NonNull MethodParameter parameter, @NonNull Type targetType, @NonNull Class<? extends HttpMessageConverter<?>> converterType) {
+        //设置时区
+        MDC.put(MDC_KEY_TIMEZONE, TimezoneUtil.get());
+        //设置trace、span
+        String traceId = Objects.requireNonNull(tracer.currentSpan()).context().traceId();
+        String spanId = Objects.requireNonNull(tracer.currentSpan()).context().spanId();
+        if (Objects.requireNonNull(tracer.currentSpan()).context() != null) {
+            MDC.put(MDC_KEY_TRACE_ID, traceId);
+            MDC.put(MDC_KEY_SPAN_ID, spanId);
+        }
         if (body instanceof BaseRequestParam) {
             BaseRequestParam requestParam = (BaseRequestParam) body;
             HttpHeaders httpHeaders = inputMessage.getHeaders();
-            log.debug("请求参数处理之前 {} {}", requestParam.getClass().getSimpleName(), JSON.toJSONString(requestParam));
-            try {
-                accessParamService.setAccessParam(requestParam, httpHeaders);
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
-            }
-            log.debug("请求参数处理之后 {} {}", requestParam.getClass().getSimpleName(), JSON.toJSONString(requestParam));
+            log.debug("请求参数处理之前 {} \n{}", requestParam.getClass().getSimpleName(), JSON.toJSONString(requestParam));
+            accessParamService.setAccessParam(requestParam, httpHeaders);
+            traceAdviceService.setCurrentTrace(requestParam);
+            tenantInfoHolder.setCurrentTenantId(requestParam);
+            TimezoneUtil.set(requestParam);
+            log.debug("请求参数处理之后 {} \n{}", requestParam.getClass().getSimpleName(), JSON.toJSONString(requestParam));
         }
         return body;
     }
-
 }

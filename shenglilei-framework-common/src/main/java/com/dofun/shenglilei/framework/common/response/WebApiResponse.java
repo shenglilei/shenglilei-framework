@@ -5,6 +5,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.dofun.shenglilei.framework.common.base.BaseResponseParam;
 import com.dofun.shenglilei.framework.common.error.BaseError;
 import com.dofun.shenglilei.framework.common.error.impl.CommonError;
+import com.dofun.shenglilei.framework.common.utils.JacksonUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -66,7 +67,7 @@ public class WebApiResponse<T extends BaseResponseParam> implements Serializable
         WebApiResponse<T> response = new WebApiResponse<>();
         response.setStatus(SUCCESS_STATUS);
         response.setErrcode(SUCCESS_ERRORCODE);
-        response.setMsg("success");
+        response.setMsg(message == null ? "success" : message);
         response.setData(data);
         return response;
     }
@@ -95,6 +96,14 @@ public class WebApiResponse<T extends BaseResponseParam> implements Serializable
         response.setStatus(FAILED_STATUS);
         response.setErrcode(CommonError.UNKNOWN_ERROR.getCode());
         response.setMsg(message);
+        return response;
+    }
+
+    public static <T extends BaseResponseParam> WebApiResponse<T> error(Integer code) {
+        WebApiResponse<T> response = new WebApiResponse<>();
+        response.setErrcode(code);
+        response.setStatus(FAILED_STATUS);
+        response.setMsg(null);
         return response;
     }
 
@@ -155,7 +164,7 @@ public class WebApiResponse<T extends BaseResponseParam> implements Serializable
 
     @Override
     public String toString() {
-        ObjectMapper mapper = new ObjectMapper();
+        ObjectMapper mapper = JacksonUtil.getObjectMapper();
         try {
             return mapper.writeValueAsString(this);
         } catch (JsonProcessingException e) {

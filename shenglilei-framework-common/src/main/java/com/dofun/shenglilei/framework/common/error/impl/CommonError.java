@@ -8,6 +8,10 @@ public enum CommonError implements BaseError {
     NO_PERMISSION(1001, "没有访问权限"),
     MISSING_PARAMETER(1002, "缺少参数"),
     ILLEGAL_PARAMETER(1003, "非法参数"),
+    TOKEN_EXPIRATION(1004, "token过期,需重新登录"),
+    REQUEST_RATE_LIMIT(1005, "您的请求速度过快，请稍后再试"),
+
+    SEQ_ERROR(1006, "seq error"),
 
     //------------------2000-2999  定义系统层面的错误，包含:jvm、中间件、磁盘、网络等----------------------------
     SYSTEM_ERROR(2000, "系统异常"),

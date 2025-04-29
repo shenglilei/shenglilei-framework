@@ -32,9 +32,13 @@ public class BusinessException extends RuntimeException {
         this.errorCode = CommonError.BUSINESS_ERROR.getCode();
     }
 
-    public BusinessException(Integer erorCode, String errorMsg) {
+    public BusinessException(Integer errorCode, String errorMsg) {
         super(errorMsg);
-        this.errorCode = erorCode;
+        this.errorCode = errorCode;
     }
 
+    public BusinessException(Integer errorCode) {
+        super("");
+        this.errorCode = errorCode;
+    }
 }

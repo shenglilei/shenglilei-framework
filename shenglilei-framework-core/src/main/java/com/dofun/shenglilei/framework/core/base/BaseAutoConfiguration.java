@@ -1,6 +1,7 @@
 package com.dofun.shenglilei.framework.core.base;
 
 
+import com.dofun.shenglilei.framework.common.tenant.TenantInfoHolder;
 import com.dofun.shenglilei.framework.core.conf.Config;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -25,5 +26,12 @@ public class BaseAutoConfiguration {
     public Config createBaseConfig() {
         log.info("Config is ready to inject.");
         return new Config();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(TenantInfoHolder.class)
+    public TenantInfoHolder createTenantInfoHolder() {
+        log.info("TenantInfoHolder is ready to inject.");
+        return new TenantInfoHolder();
     }
 }

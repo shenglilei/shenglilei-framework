@@ -2,9 +2,6 @@ package com.dofun.shenglilei.framework.common.error;
 
 /**
  * 描述： 错误定义
- *
- * @author likejie
- * @date 2018/11/13 9:42
  */
 public interface BaseError {
 

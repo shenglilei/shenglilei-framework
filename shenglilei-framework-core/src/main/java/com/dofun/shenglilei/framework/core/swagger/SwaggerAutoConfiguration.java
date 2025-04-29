@@ -8,13 +8,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import springfox.documentation.builders.ApiInfoBuilder;
-import springfox.documentation.builders.ParameterBuilder;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.schema.ModelRef;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.service.Contact;
-import springfox.documentation.service.Parameter;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
@@ -27,6 +24,7 @@ import java.util.List;
 /**
  * swagger API文档自动生成工具配置
  */
+@SuppressWarnings("deprecation")
 @Slf4j
 @EnableSwagger2
 @Configuration
@@ -57,18 +55,18 @@ public class SwaggerAutoConfiguration {
                 port +
                 baseUrl;
         log.info("Swagger2 ready to inject");
-        log.warn("Swagger使用地址:" + builder + "swagger-ui.html");
+        log.warn("Swagger使用地址:" + builder + "doc.html");
         return docket;
     }
 
-    private List<Parameter> getGlobalParameters() {
-        List<Parameter> globalParamList = new ArrayList<>();
+    private List<springfox.documentation.service.Parameter> getGlobalParameters() {
+        List<springfox.documentation.service.Parameter> globalParamList = new ArrayList<>();
         List<SwaggerProperties.GlobalOperationParameter> list = properties.getGlobalOperationParameters();
         if (list != null) {
-            ParameterBuilder parameterBuilder = new ParameterBuilder();
+            springfox.documentation.builders.ParameterBuilder parameterBuilder = new springfox.documentation.builders.ParameterBuilder();
             list.forEach(l -> {
-                Parameter tokenParam = parameterBuilder.name(l.getName()).description(l.getDescription())
-                        .modelRef(new ModelRef(l.getModelRef())).parameterType(l.getParameterType())
+                springfox.documentation.service.Parameter tokenParam = parameterBuilder.name(l.getName()).description(l.getDescription())
+                        .modelRef(new springfox.documentation.schema.ModelRef(l.getModelRef())).parameterType(l.getParameterType())
                         .required(l.getRequired()).build();
                 globalParamList.add(tokenParam);
             });

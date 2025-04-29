@@ -6,6 +6,7 @@ import com.alibaba.druid.support.http.StatViewServlet;
 import com.alibaba.druid.util.JdbcUtils;
 import com.alibaba.druid.wall.WallConfig;
 import com.alibaba.druid.wall.WallFilter;
+import com.alibaba.fastjson.JSONObject;
 import com.dofun.shenglilei.framework.mysql.properties.DataSourceProperties;
 import com.mysql.jdbc.JDBC4Connection;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +44,7 @@ public class MySQLAutoConfiguration {
 
     @Bean(name = "MySQLDataSource", destroyMethod = "close", initMethod = "init")
     public DataSource druidDataSource() throws SQLException {
+        log.error("dataSourceProperties===={}", JSONObject.toJSONString(dataSourceProperties));
         DruidDataSource datasource = new DruidDataSource();
         datasource.setUrl(dataSourceProperties.getUrl());
         datasource.setUsername(dataSourceProperties.getUsername());

@@ -13,7 +13,7 @@ import org.apache.commons.lang3.StringUtils;
  * https://www.cnblogs.com/Robert-huge/p/5481515.html
  * <p>
  * Created with IntelliJ IDEA.
- * User: Steven Cheng(成亮)
+ * author: Steven Cheng(成亮)
  * Date:2021/9/30
  * Time:13:58
  */
@@ -23,11 +23,10 @@ public enum LanguageEnum {
      * 简体中文
      */
     ZH_CN(0, "zh-cn", "简体中文"),
-//    ZH_HK(1, "zh-hk", "繁体中文(香港)"),
     /**
      * 繁体中文（台湾）
      */
-    ZH_TW(1, "zh-hk", "繁体中文(台湾)"),
+    ZH_TW(1, "zh-tw", "繁体中文(台湾)"),
     /**
      * 英语(美国)
      */
@@ -36,6 +35,48 @@ public enum LanguageEnum {
      * 越南语
      */
     VI_VN(3, "vi-vn", "越南语"),
+    /**
+     * 印尼语
+     */
+    ID_ID(4, "id-id", "印尼语"),
+    /**
+     * 泰语
+     */
+    TH_TH(5, "th-th", "泰语"),
+    /**
+     * 马来语
+     */
+    MS_MY(6, "ms-my", "马来语"),
+    /**
+     * 菲律宾语
+     */
+    TL_PH(7, "tl-ph", "菲律宾语"),
+    /**
+     * 繁体中文(香港)
+     */
+    ZH_HK(8, "zh-hk", "繁体中文(香港)"),
+    /**
+     * 繁体中文(澳门)
+     */
+    ZH_MO(9, "zh-mo", "繁体中文(澳门)"),
+    /**
+     * 印度(印地语)
+     */
+    HI_IN(10, "hi-in", "印地语"),
+
+    /**
+     * 巴西(葡萄牙语)
+     */
+    PT_BR(11, "pt-br", "葡萄牙语"),
+    /**
+     * 墨西哥(西班牙语)
+     */
+    ES_MX(12, "es-mx", "西班牙语"),
+
+    /**
+     * 孟加拉(孟加拉语)
+     */
+    BN_BD(13, "bn-bd", "孟加拉语"),
     ;
 
     private final Integer id;

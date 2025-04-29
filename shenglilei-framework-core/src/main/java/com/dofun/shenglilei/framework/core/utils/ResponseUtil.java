@@ -50,7 +50,7 @@ public class ResponseUtil {
         String value = response.getHeader(Constants.RESPONSE_HEADER_KEY_TRACE_ID);
         if (traceId != null && !traceId.isEmpty()) {
             if (value != null) {
-                log.warn("do not repeat set head,old value:" + value + ",new value:" + traceId);
+//                log.warn("do not repeat set head,old value:" + value + ",new value:" + traceId);
                 return;
             }
             response.addHeader(Constants.RESPONSE_HEADER_KEY_TRACE_ID, traceId);
