@@ -44,7 +44,6 @@ public class MySQLAutoConfiguration {
 
     @Bean(name = "MySQLDataSource", destroyMethod = "close", initMethod = "init")
     public DataSource druidDataSource() throws SQLException {
-        log.error("dataSourceProperties===={}", JSONObject.toJSONString(dataSourceProperties));
         DruidDataSource datasource = new DruidDataSource();
         datasource.setUrl(dataSourceProperties.getUrl());
         datasource.setUsername(dataSourceProperties.getUsername());
