@@ -1,3 +1,4 @@
+/*
 package com.dofun.shenglilei.framework.core.conf;
 
 import com.alibaba.fastjson.JSON;
@@ -20,13 +21,15 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
+*/
 /**
  * @ClassName ConfigChangeConsumer
  * @Description nacos自定义配置变更通知的消费者，籍此构建一个通过nacos配置变更通知机制来对同服务实例做消息通知和内容传达的通道，使用场景有进程内的缓存更新，需要通知到所有同服务的实例进行该缓存的更新
  * @Author zouchuanyi
  * @Date 2022/5/6 17:38
  * @Version 1.0
- **/
+ **//*
+
 @Service
 @Slf4j
 public class ConfigChangeConsumer {
@@ -132,3 +135,4 @@ public class ConfigChangeConsumer {
         cacheChangeEventListenerMap.put(key,listener);
     }
 }
+*/
