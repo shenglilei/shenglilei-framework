@@ -102,7 +102,6 @@ public enum RegionEnum {
     /**
      * 语言Id
      * <p>
-     * 详细定义见：com.dofun.uggame.framework.common.enums.LanguageEnum
      * <p>
      * 0-简体中文，1-繁体中文，2-英语，3=越南语
      */
@@ -111,8 +110,7 @@ public enum RegionEnum {
     /**
      * 时区Id
      * <p>
-     * 详细定义见：com.dofun.uggame.framework.common.enums.TimezoneEnum
-     * <p>
+     * 详细定义见：com.dofun.uggame.framework.common.enums.TimezoneEnum     * <p>
      * 0-GMT+800，1-繁体中文，2-英语，3=越南语
      */
     private final Integer timezoneId;
@@ -142,7 +140,7 @@ public enum RegionEnum {
     private final Long transferUserId;
 
     /**
-     * 盲盒系统用户(uggame专用)
+
      */
     private final Long blindBoxUserId;
 

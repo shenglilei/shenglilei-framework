@@ -13,18 +13,9 @@ import org.apache.commons.lang3.StringUtils;
  */
 @Getter
 public enum EnvDomainEnum {
-    /**
-     * Uggame，M站，开发环境
-     */
-    uggame_websiteH5_dev("https://m-dev.uggame.com/"),
-    /**
-     * Uggame，M站，测试环境
-     */
-    uggame_websiteH5_test("https://m-test.uggame.com/"),
-    /**
-     * Uggame，M站，测试环境
-     */
-    uggame_websiteH5_prod("https://m.uggame.com/"),
+
+
+
 
     /**
      * UGEsport，M站，开发环境

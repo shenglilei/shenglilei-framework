@@ -1,12 +1,14 @@
 package com.dofun.shenglilei.framework.mysql.configuration;
 
+import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
+import com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean;
 import com.dofun.shenglilei.framework.mysql.constants.MyBatisConstants;
 import com.github.pagehelper.PageInterceptor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.plugin.Interceptor;
 import org.apache.ibatis.session.SqlSessionFactory;
-import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.SqlSessionTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -15,8 +17,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import tk.mybatis.mapper.entity.Config;
-import tk.mybatis.mapper.mapperhelper.MapperHelper;
 
 import javax.annotation.Resource;
 import javax.sql.DataSource;
@@ -28,24 +28,28 @@ import java.util.List;
 @ConditionalOnResource(resources = {MyBatisConstants.MAPPER_ROOT_PATH})
 @ConditionalOnClass(value = {SqlSessionFactory.class})
 public class MyBatisAutoConfiguration {
+
     @Resource
     @Qualifier("MySQLPageInterceptor")
     private PageInterceptor pageInterceptor;
 
+    @Autowired(required = false)
+    @Qualifier("MySQLTenantInterceptor")
+    private MybatisPlusInterceptor tenantInterceptor;
+
+    @Autowired(required = false)
+    @Qualifier("MySQLDynamicTableNameInterceptor")
+    private MybatisPlusInterceptor dynamicTableNameInterceptor;
+
     @Bean(name = "MySQLSQLSessionFactory")
-    public SqlSessionFactory sqlSessionFactoryBean(@Qualifier("MySQLDataSource") DataSource dataSource,
-                                                   @Qualifier("MySQLMapperHelper") MapperHelper mapperHelper) throws Exception {
-        SqlSessionFactoryBean bean = new SqlSessionFactoryBean();
+    public SqlSessionFactory sqlSessionFactoryBean(@Qualifier("MySQLDataSource") DataSource dataSource) throws Exception {
+        MybatisSqlSessionFactoryBean bean = new MybatisSqlSessionFactoryBean();
         bean.setDataSource(dataSource);
         // 设置mybatis XML目录
         ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         bean.setMapperLocations(resolver.getResources(MyBatisConstants.MAPPER_XML));
-        //配置通用mapper
-        tk.mybatis.mapper.session.Configuration configuration = new tk.mybatis.mapper.session.Configuration();
-        configuration.setMapperHelper(mapperHelper);
-        bean.setConfiguration(configuration);
         //配置插件
-        setPlugins(bean, pageInterceptor);
+        setPlugins(bean, pageInterceptor, tenantInterceptor, dynamicTableNameInterceptor);
         log.info("mybatis plugins is set");
         SqlSessionFactory sqlSessionFactory = bean.getObject();
         //-自动使用驼峰命名属性映射字段   userId    user_id
@@ -55,7 +59,7 @@ public class MyBatisAutoConfiguration {
         return sqlSessionFactory;
     }
 
-    private void setPlugins(SqlSessionFactoryBean bean, Interceptor... interceptors) {
+    private void setPlugins(MybatisSqlSessionFactoryBean bean, Interceptor... interceptors) {
         if (interceptors == null || interceptors.length == 0) {
             return;
         }
@@ -63,6 +67,7 @@ public class MyBatisAutoConfiguration {
         for (Interceptor interceptor : interceptors) {
             if (interceptor != null) {
                 result.add(interceptor);
+                log.debug("插件加载完成：{}", interceptor.getClass().toString());
             }
         }
         if (result.isEmpty()) {
@@ -71,26 +76,6 @@ public class MyBatisAutoConfiguration {
         Interceptor[] adds = new Interceptor[result.size()];
         adds = result.toArray(adds);
         bean.setPlugins(adds);
-    }
-
-    /**
-     * 通用mapper，配置说明详见https://github.com/abel533/Mapper/wiki/3.config
-     */
-    @Bean(name = "MySQLMapperHelper")
-    public MapperHelper mapperHelper() {
-        Config config = new Config();
-        config.setIDENTITY("MYSQL");
-        config.setNotEmpty(false);
-        config.setOrder("AFTER");
-        config.setEnableMethodAnnotation(true);
-        config.setCheckExampleEntityClass(true);
-        config.setUseSimpleType(true);
-        config.setEnumAsSimpleType(true);
-        config.setWrapKeyword("`{0}`");
-        MapperHelper mapperHelper = new MapperHelper();
-        mapperHelper.setConfig(config);
-        log.info("tk.mybatis.mapper is ready to inject.");
-        return mapperHelper;
     }
 
     @Bean(name = "MySQLDataSourceTransactionManager")

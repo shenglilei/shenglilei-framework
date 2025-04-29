@@ -16,13 +16,25 @@ public class PageUtils {
      * 转换成基础的分页响应参数对象
      */
     public static <T> BasePageResponseParam<T> asPageResponse(PageInfo<T> pageInfo) {
-
         BasePageResponseParam<T> pageResponseParam = new BasePageResponseParam<>();
-        pageResponseParam.setPageNum(pageResponseParam.getPageNum());
-        pageResponseParam.setPageSize(pageResponseParam.getPageSize());
+        pageResponseParam.setPageNum(pageInfo.getPageNum());
+        pageResponseParam.setPageSize(pageInfo.getPageSize());
         pageResponseParam.setTotal(pageInfo.getTotal());
         pageResponseParam.setPages(pageInfo.getPages());
         pageResponseParam.setResult(pageInfo.getList());
+        return pageResponseParam;
+    }
+
+    /**
+     * 转换成基础的分页响应参数对象
+     */
+    public static <R> BasePageResponseParam<R> asPageResponse(PageInfo<?> pageInfo, List<R> list) {
+        BasePageResponseParam<R> pageResponseParam = new BasePageResponseParam<>();
+        pageResponseParam.setPageNum(pageInfo.getPageNum());
+        pageResponseParam.setPageSize(pageInfo.getPageSize());
+        pageResponseParam.setTotal(pageInfo.getTotal());
+        pageResponseParam.setPages(pageInfo.getPages());
+        pageResponseParam.setResult(list);
         return pageResponseParam;
     }
 

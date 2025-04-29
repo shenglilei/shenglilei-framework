@@ -11,9 +11,8 @@ import org.apache.commons.lang3.StringUtils;
  * Time:13:58
  */
 public enum AppEnum {
-    /**
-     * UGGame
-     */
+
+
     UGGame("uggame", "uggame App"),
     /**
      * UGesport

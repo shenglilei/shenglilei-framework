@@ -43,7 +43,6 @@ public class CommonAccessInterceptor implements HandlerInterceptor {
         BaseRequestParam requestParam = new BaseRequestParam();
         accessParamService.setAccessParam(requestParam, request);
         // get请求和form请求
-        request.setAttribute("uggameRequestParam", requestParam);
         log.debug("success process.");
         return true;
     }

@@ -1,16 +1,16 @@
 package com.dofun.shenglilei.framework.mysql.configuration;
 
 import com.alibaba.druid.filter.Filter;
+import com.alibaba.druid.filter.logging.LogFilter;
+import com.alibaba.druid.filter.stat.StatFilter;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.support.http.StatViewServlet;
 import com.alibaba.druid.util.JdbcUtils;
 import com.alibaba.druid.wall.WallConfig;
 import com.alibaba.druid.wall.WallFilter;
-import com.alibaba.fastjson.JSONObject;
 import com.dofun.shenglilei.framework.mysql.properties.DataSourceProperties;
 import com.mysql.jdbc.JDBC4Connection;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -20,6 +20,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import javax.annotation.Resource;
 import javax.sql.DataSource;
 import java.sql.SQLException;
 import java.util.List;
@@ -38,8 +39,7 @@ import java.util.List;
 @Import({MyBatisAutoConfiguration.class, MapperScannerAutoConfiguration.class})
 public class MySQLAutoConfiguration {
 
-    @SuppressWarnings("all")
-    @Autowired
+    @Resource
     private DataSourceProperties dataSourceProperties;
 
     @Bean(name = "MySQLDataSource", destroyMethod = "close", initMethod = "init")
@@ -70,7 +70,27 @@ public class MySQLAutoConfiguration {
         for (Filter filter : filters) {
             if (filter instanceof WallFilter) {
                 //修改允许执行批量更新SQL语句
-                ((WallFilter) filter).setConfig(wallConfig());
+                WallFilter wallFilter = (WallFilter) filter;
+                wallFilter.setConfig(wallConfig());
+                //刚开始引入WallFilter的时候，把logViolation设置为true，而throwException设置为false。就可以观察是否存在违规的情况，同时不影响业务运行。
+                wallFilter.setLogViolation(true);
+                wallFilter.setThrowException(false);
+                log.debug("WallFilter is loaded.");
+            }
+            if (filter instanceof LogFilter) {
+                LogFilter logFilter = (LogFilter) filter;
+                //输出可执行的SQL
+                logFilter.setStatementExecutableSqlLogEnable(true);
+                logFilter.setStatementSqlPrettyFormat(true);
+                log.debug("LogFilter is loaded.");
+            }
+            if (filter instanceof StatFilter) {
+                StatFilter statFilter = (StatFilter) filter;
+                statFilter.setMergeSql(true);
+                //记录慢SQL
+                statFilter.setLogSlowSql(true);
+                statFilter.setSlowSqlMillis(1500);
+                log.debug("StatFilter is loaded.");
             }
         }
 
@@ -90,21 +110,48 @@ public class MySQLAutoConfiguration {
         //servletRegistrationBean.addInitParameter("deny", "192.168.1.1");
         //登录查看信息的账号密码.
         servletRegistrationBean.addInitParameter("loginUsername", "admin");
-        servletRegistrationBean.addInitParameter("loginPassword", "123456");
+        servletRegistrationBean.addInitParameter("loginPassword", "3ixbcf2jxlNdJDkK");
         //是否能够重置数据.
         servletRegistrationBean.addInitParameter("resetEnable", "false");
         log.info("MySQLServletRegistrationBean is ready to inject.");
         return servletRegistrationBean;
     }
 
+    //https://www.bookstack.cn/read/Druid/ffdd9118e6208531.md
     @Bean(name = "MySQLWallConfig")
     public WallConfig wallConfig() {
         WallConfig wallConfig = new WallConfig();
-        //允许一次执行多条语句
-        wallConfig.setMultiStatementAllow(true);
-        //允许一次执行多条语句
-        wallConfig.setNoneBaseStatementAllow(true);
-        wallConfig.setCommentAllow(true);
+        wallConfig.setReplaceAllow(false);
+        wallConfig.setCallAllow(false);
+        wallConfig.setSetAllow(false);
+        wallConfig.setTruncateAllow(true);
+        wallConfig.setCreateTableAllow(false);
+        wallConfig.setAlterTableAllow(false);
+        wallConfig.setDropTableAllow(false);
+        wallConfig.setCommentAllow(false);
+        wallConfig.setMultiStatementAllow(false);
+        wallConfig.setNoneBaseStatementAllow(false);
+        wallConfig.setUseAllow(false);
+        wallConfig.setDescribeAllow(false);
+        wallConfig.setShowAllow(false);
+
+        wallConfig.setDeleteWhereNoneCheck(true);
+        wallConfig.setUpdateWhereNoneCheck(true);
+        wallConfig.setConditionAndAlwayFalseAllow(true);
+        wallConfig.setConditionAndAlwayTrueAllow(true);
+
+        wallConfig.setConditionOpBitwseAllow(false);
+        wallConfig.setConditionDoubleConstAllow(false);
+        wallConfig.setMinusAllow(false);
+        wallConfig.setIntersectAllow(false);
+        /*
+          这2行代码不能打开注释，会导致分页插件出问题
+         wallConfig.setLimitZeroAllow(false);
+         wallConfig.setSelectLimit(10 * 10000);
+          */
+        wallConfig.setMetadataAllow(true);
+        wallConfig.setWrapAllow(false);
+
         return wallConfig;
     }
 }
