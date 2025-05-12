@@ -1,105 +1,356 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configuration>
-    <!-- 日志存放路径 -->
-    <property name="log.path" value="/home/project/logs/qq-empower" />
-    <!-- 日志输出格式 -->
-    <property name="log.pattern" value="%d{HH:mm:ss.SSS} [%thread] %-5level %logger{20} - [%method,%line] - %msg%n" />
 
-    <!-- 控制台输出 -->
-    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>${log.pattern}</pattern>
-        </encoder>
-    </appender>
+<included>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <jmxConfigurator/>
 
-    <!-- 系统日志输出 -->
-    <appender name="file_info" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <!--注释掉吧, 打印的太多了-->
-        <!--<file>${log.path}/sys-info.log</file>-->
-        <!-- 循环政策：基于时间创建日志文件 -->
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!-- 日志文件名格式 -->
-            <fileNamePattern>${log.path}/sys-info.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <!-- 日志最大的历史 30天 -->
-            <maxHistory>10</maxHistory>
-        </rollingPolicy>
-        <encoder>
-            <pattern>${log.pattern}</pattern>
-        </encoder>
-        <filter class="ch.qos.logback.classic.filter.LevelFilter">
-            <!-- 过滤的级别 -->
-            <level>INFO</level>
-            <!-- 匹配时的操作：接收（记录） -->
-            <onMatch>ACCEPT</onMatch>
-            <!-- 不匹配时的操作：拒绝（不记录） -->
-            <onMismatch>DENY</onMismatch>
-        </filter>
-    </appender>
+    <springProperty scope="context" name="applicationName" source="spring.application.name"
+                    defaultValue="uggame-service-unknown"/>
+    <springProperty scope="context" name="env" source="spring.profiles.active" defaultValue="dev"/>
+    <springProperty scope="context" name="applicationRunIP" source="spring.cloud.client.ip-address"/>
+    <springProperty scope="context" name="applicationRunHostname" source="spring.cloud.client.hostname"/>
+    <springProperty scope="context" name="applicationRunPort" source="server.port" defaultValue="80"/>
+    <springProperty scope="context" name="kafkaBootstrapServers" source="ienv.kafka.logservers"
+                    defaultValue="localhost:9092"/>
+    <springProperty scope="context" name="kafkaTopic" source="ienv.kafka.topic-app-log" defaultValue="appLogs"/>
 
-    <appender name="file_error" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <!--注释掉吧, 打印的太多了-->
+    <!--获取服务器的IP和名称-->
+    <!--    <conversionRule conversionWord="hostName" converterClass="com.dofun.uggame.framework.log.LogHostNameConfigUtil"/>-->
+    <!--    <conversionRule conversionWord="hostAddress" converterClass="com.dofun.uggame.framework.log.LogHostAddressConfigUtil"/>-->
 
-        <!--<file>${log.path}/sys-error.log</file>-->
-        <!-- 循环政策：基于时间创建日志文件 -->
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!-- 日志文件名格式 -->
-            <fileNamePattern>${log.path}/sys-error.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <!-- 日志最大的历史 30天 -->
-            <maxHistory>10</maxHistory>
-        </rollingPolicy>
-        <encoder>
-            <pattern>${log.pattern}</pattern>
-        </encoder>
-        <filter class="ch.qos.logback.classic.filter.LevelFilter">
-            <!-- 过滤的级别 -->
-            <level>ERROR</level>
-            <!-- 匹配时的操作：接收（记录） -->
-            <onMatch>ACCEPT</onMatch>
-            <!-- 不匹配时的操作：拒绝（不记录） -->
-            <onMismatch>DENY</onMismatch>
-        </filter>
-    </appender>
+    <property name="LOG_HOME" value="logs"/>
+    <property name="LOG_PREFIX" value="${applicationName}"/>
 
-    <!-- 用户访问日志输出  -->
-    <appender name="sys-user" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${log.path}/sys-user.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!-- 按天回滚 daily -->
-            <fileNamePattern>${log.path}/sys-user.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <!-- 日志最大的历史 30天 -->
-            <maxHistory>10</maxHistory>
-        </rollingPolicy>
-        <encoder>
-            <pattern>${log.pattern}</pattern>
-        </encoder>
-    </appender>
+    <property name="threadShowLength" value="15"/>
+    <property name="classShowLength" value="70"/>
 
-    <appender name="grpc-log" class="org.apache.skywalking.apm.toolkit.log.logback.v1.x.log.GRPCLogClientAppender">
+    <springProfile name="dev">
+        <logger name="com.dofun.uggame" level="trace"/>
+    </springProfile>
+
+    <springProfile name="test">
+        <logger name="com.dofun.uggame" level="debug"/>
+    </springProfile>
+
+    <springProfile name="prod">
+        <property name="threadShowLength" value="30"/>
+        <property name="classShowLength" value="100"/>
+        <logger name="com.dofun.uggame" level="INFO"/>
+        <!-- 限制重复输出日志 -->
+        <!--<turboFilter class="ch.qos.logback.classic.turbo.DuplicateMessageFilter">-->
+        <turboFilter class="com.dofun.uggame.framework.log.TimingWindowDuplicateMessageFilter">
+            <!--重复阀值-->
+            <AllowedRepetitions>128</AllowedRepetitions>
+            <!--缓冲区大小，用来判断重复-->
+            <CacheSize>4096</CacheSize>
+            <!--阈值有效期，单位：秒-->
+            <TimeWindow>60</TimeWindow>
+        </turboFilter>
+    </springProfile>
+
+    <property name="CONSOLE_LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS Z} %highlight(${LOG_LEVEL_PATTERN:-%5p}) [%tid] %boldMagenta(${PID:- }) %cyan(---){faint} %green([%thread]) %cyan(%-${classShowLength}.${classShowLength}logger{69}) %highlight([%method] [%L]) %cyan(:) %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
+
+    <property name="FILE_LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS Z} ${LOG_LEVEL_PATTERN:-%5p} [%tid] ${PID:- } --- [%-${threadShowLength}.${threadShowLength}t] %-${classShowLength}.${classShowLength}logger [%method] [%L] : %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
+
+
+    <!-- Skywalking 通过grpc上报日志 （需要v8.4.0+）-->
+    <appender name="SKYWALKING_GRPC_LOG"
+              class="org.apache.skywalking.apm.toolkit.log.logback.v1.x.log.GRPCLogClientAppender">
         <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
             <layout class="org.apache.skywalking.apm.toolkit.log.logback.v1.x.mdc.TraceIdMDCPatternLogbackLayout">
-                <Pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%X{tid}] [%thread] %-5level %logger{36} -%msg%n</Pattern>
+                <Pattern>%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(%X{tl:-}){yellow}
+                    %clr(${PID:- }){magenta} %clr([%X{tid}]){faint} %clr(---){faint} %clr([%15.15t]){faint}
+                    %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}
+                </Pattern>
             </layout>
         </encoder>
     </appender>
 
-    <!-- 系统模块日志级别控制  -->
-    <logger name="com.baidu" level="info" />
-    <!-- Spring日志级别控制  -->
-    <logger name="org.springframework" level="warn" />
+    <!-- 仅标准输出 -->
+    <appender name="CONSOLE_OUT" class="ch.qos.logback.core.ConsoleAppender" target="System.out">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>TRACE</level>
+        </filter>
+        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+            <layout class="org.apache.skywalking.apm.toolkit.log.logback.v1.x.TraceIdPatternLogbackLayout">
+                <Pattern>${CONSOLE_LOG_PATTERN}</Pattern>
+            </layout>
+        </encoder>
+    </appender>
 
-    <root level="info">
-        <appender-ref ref="console" />
+    <!-- 仅错误输出 -->
+    <appender name="CONSOLE_STD_ERR" class="ch.qos.logback.core.ConsoleAppender" target="System.err">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>WARN</level>
+        </filter>
+        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+            <layout class="org.apache.skywalking.apm.toolkit.log.logback.v1.x.TraceIdPatternLogbackLayout">
+                <Pattern>${CONSOLE_LOG_PATTERN}</Pattern>
+            </layout>
+        </encoder>
+    </appender>
+
+    <appender name="TRACE_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>TRACE</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <File>${LOG_HOME}/trace.log</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/archive/trace-%d{yyyyMMdd}.log.%i.gz</fileNamePattern>
+            <maxFileSize>50MB</maxFileSize>
+            <maxHistory>3</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <Pattern>${FILE_LOG_PATTERN}</Pattern>
+        </encoder>
+    </appender>
+
+    <appender name="TRACE_FILE_ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+        <discardingThreshold>90</discardingThreshold>
+        <queueSize>2048</queueSize>
+        <includeCallerData>true</includeCallerData>
+        <appender-ref ref="TRACE_FILE"/>
+    </appender>
+
+    <appender name="DEBUG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>DEBUG</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <File>${LOG_HOME}/debug.log</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/archive/debug-%d{yyyyMMdd}.log.%i.gz</fileNamePattern>
+            <maxFileSize>50MB</maxFileSize>
+            <maxHistory>3</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <Pattern>${FILE_LOG_PATTERN}</Pattern>
+        </encoder>
+    </appender>
+
+    <appender name="DEBUG_FILE_ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+        <discardingThreshold>90</discardingThreshold>
+        <queueSize>2048</queueSize>
+        <includeCallerData>true</includeCallerData>
+        <appender-ref ref="DEBUG_FILE"/>
+    </appender>
+
+    <appender name="INFO_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <File>${LOG_HOME}/info.log</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/archive/info-%d{yyyyMMdd}.log.%i.gz</fileNamePattern>
+            <maxFileSize>50MB</maxFileSize>
+            <maxHistory>3</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <Pattern>${FILE_LOG_PATTERN}</Pattern>
+        </encoder>
+    </appender>
+
+    <appender name="INFO_FILE_ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+        <discardingThreshold>90</discardingThreshold>
+        <queueSize>2048</queueSize>
+        <includeCallerData>true</includeCallerData>
+        <appender-ref ref="INFO_FILE"/>
+    </appender>
+
+    <appender name="WARN_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>WARN</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <File>${LOG_HOME}/warn.log</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/archive/warn-%d{yyyyMMdd}.log.%i.gz</fileNamePattern>
+            <maxFileSize>50MB</maxFileSize>
+            <maxHistory>3</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <Pattern>${FILE_LOG_PATTERN}</Pattern>
+        </encoder>
+    </appender>
+
+    <appender name="WARN_FILE_ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+        <discardingThreshold>90</discardingThreshold>
+        <queueSize>2048</queueSize>
+        <includeCallerData>true</includeCallerData>
+        <appender-ref ref="WARN_FILE"/>
+    </appender>
+
+    <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <File>${LOG_HOME}/error.log</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/archive/error-%d{yyyyMMdd}.log.%i.gz</fileNamePattern>
+            <maxFileSize>50MB</maxFileSize>
+            <maxHistory>3</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <Pattern>${FILE_LOG_PATTERN}</Pattern>
+        </encoder>
+    </appender>
+
+    <appender name="ERROR_FILE_ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+        <discardingThreshold>90</discardingThreshold>
+        <queueSize>2048</queueSize>
+        <includeCallerData>true</includeCallerData>
+        <appender-ref ref="ERROR_FILE"/>
+    </appender>
+
+    <appender name="KafkaAppender" class="com.github.danielwegener.logback.kafka.KafkaAppender">
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers class="net.logstash.logback.composite.loggingevent.LoggingEventJsonProviders">
+                <pattern>
+                    <!-- http://logback.qos.ch/manual/layouts.html#date-->
+                    <pattern>
+                        {
+                        "dateTime":"%d{yyyy-MM-dd HH:mm:ss.SSS Z}",
+                        "contextName":"%contextName",
+                        "hostName":"${applicationRunHostname}",
+                        "hostIp":"${applicationRunIP}",
+                        "port":"${applicationRunPort}",
+                        "timezone":"%X{timezone:-}",
+                        "pid": "${PID:-}",
+                        "clientIp":"%X{ip:-}",
+                        "thread": "%thread",
+                        "logger": "%logger",
+                        "method": "%method",
+                        "lineNum": "%line",
+                        "message":"%message",
+                        "izone":"%X{izone:-}",
+                        "buildNumber":"%X{buildNumber:-}",
+                        "env": "${env}",
+                        "applicationName":"${applicationName}",
+                        "level":"%level",
+                        "traceId":"%X{traceId:-}",
+                        "spanId":"%X{spanId:-}",
+                        "TID":"%X{tid:-}",
+                        "userId":"%X{userId:-}",
+                        "role":"%X{role:-}",
+                        "countryId":"%X{countryId:-}",
+                        "languageId":"%X{languageId:-}",
+                        "countryCode":"%X{countryCode:-}",
+                        "reqEndPoint":"%X{reqEndPoint:-}",
+                        "deviceInfo":"%X{deviceInfo:-}",
+                        "appId":"%X{appId:-}",
+                        "appVersion":"%X{appVersion:-}",
+                        "osVersion":"%X{osVersion:-}",
+                        "exception":"%xException"
+                        }
+                    </pattern>
+                </pattern>
+            </providers>
+        </encoder>
+        <topic>${kafkaTopic}</topic>
+        <keyingStrategy class="com.github.danielwegener.logback.kafka.keying.NoKeyKeyingStrategy"/>
+        <deliveryStrategy class="com.github.danielwegener.logback.kafka.delivery.AsynchronousDeliveryStrategy"/>
+        <producerConfig>acks=0</producerConfig>
+        <producerConfig>linger.ms=1000</producerConfig>
+        <producerConfig>max.block.ms=0</producerConfig>
+        <producerConfig>bootstrap.servers=${kafkaBootstrapServers}</producerConfig>
+    </appender>
+
+    <!--异步写入kafka，尽量不占用主程序的资源-->
+    <appender name="KAFKA_ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+        <neverBlock>true</neverBlock>
+        <includeCallerData>true</includeCallerData>
+        <discardingThreshold>0</discardingThreshold>
+        <queueSize>8192</queueSize>
+        <appender-ref ref="KafkaAppender"/>
+    </appender>
+
+    <!--异步写入skywalking，尽量不占用主程序的资源-->
+    <appender name="SKYWALKING_GRPC_LOG_ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+        <neverBlock>true</neverBlock>
+        <includeCallerData>true</includeCallerData>
+        <discardingThreshold>0</discardingThreshold>
+        <queueSize>8192</queueSize>
+        <appender-ref ref="SKYWALKING_GRPC_LOG"/>
+    </appender>
+
+
+    <logger name="com.alibaba" level="WARN"/>
+    <logger name="com.baomidou.mybatisplus.extension.plugins" level="INFO"/>
+    <logger name="com.dofun.uggame.common.util" level="WARN"/>
+    <logger name="com.ulisesbocchio" level="WARN"/>
+    <logger name="de.codecentric.boot.admin" level="INFO"/>
+    <logger name="druid.sql" level="WARN"/>
+    <logger name="io.lettuce" level="WARN"/>
+    <logger name="io.micrometer.core" level="WARN"/>
+    <logger name="io.netty" level="WARN"/>
+    <logger name="io.seata" level="INFO"/>
+    <logger name="org.apache" level="WARN"/>
+    <logger name="org.elasticsearch" level="WARN"/>
+    <logger name="org.hibernate" level="WARN"/>
+    <logger name="org.mongodb" level="WARN"/>
+    <logger name="org.mybatis" level="WARN"/>
+    <logger name="org.quartz" level="WARN"/>
+    <logger name="org.redisson" level="WARN"/>
+    <logger name="org.springframework" level="WARN"/>
+    <logger name="org.synchronoss" level="WARN"/>
+    <logger name="reactor" level="WARN"/>
+    <logger name="reactor.netty" level="WARN"/>
+    <logger name="springfox" level="WARN"/>
+    <logger name="org.aspectj" level="WARN"/>
+    <logger name="sun.net.www.protocol.http" level="WARN"/>
+    <logger name="javax.management.mbeanserver" level="WARN"/>
+    <!--打印mongodb nosql语句-->
+    <logger name="org.springframework.data.mongodb.core" level="WARN"/>
+    <logger name="Validator" level="WARN"/>
+
+
+    <root level="DEBUG">
+        <springProfile name="prod">
+            <!--生产环境的日志写入位置：1.错误输出-控制台、2.kafka、异步写入、3.本地文件、异步写入（已关闭）-->
+            <appender-ref ref="CONSOLE_STD_ERR"/>
+            <!--            <appender-ref ref="TRACE_FILE_ASYNC"/>-->
+            <!--            <appender-ref ref="DEBUG_FILE_ASYNC"/>-->
+            <!--            <appender-ref ref="INFO_FILE_ASYNC"/>-->
+            <!--            <appender-ref ref="WARN_FILE_ASYNC"/>-->
+            <!--            <appender-ref ref="ERROR_FILE_ASYNC"/>-->
+        </springProfile>
+        <springProfile name="dev">
+
+            <!--开发环境的日志写入位置：1.标准输出+错误输出-控制台、2.kafka、异步写入、3.本地文件、异步写入（已关闭）-->
+            <appender-ref ref="CONSOLE_OUT"/>
+            <appender-ref ref="SKYWALKING_GRPC_LOG_ASYNC"/>
+            <!--            <appender-ref ref="TRACE_FILE_ASYNC"/>-->
+            <!--            <appender-ref ref="DEBUG_FILE_ASYNC"/>-->
+            <!--            <appender-ref ref="INFO_FILE_ASYNC"/>-->
+            <!--            <appender-ref ref="WARN_FILE_ASYNC"/>-->
+            <!--            <appender-ref ref="ERROR_FILE_ASYNC"/>-->
+        </springProfile>
+        <springProfile name="test">
+
+            <!--测试环境的日志写入位置：1.标准输出+错误输出-控制台、2.kafka、异步写入、3.本地文件、异步写入（已关闭）-->
+            <appender-ref ref="CONSOLE_OUT"/>
+            <appender-ref ref="SKYWALKING_GRPC_LOG_ASYNC"/>
+            <!--            <appender-ref ref="TRACE_FILE_ASYNC"/>-->
+            <!--            <appender-ref ref="DEBUG_FILE_ASYNC"/>-->
+            <!--            <appender-ref ref="INFO_FILE_ASYNC"/>-->
+            <!--            <appender-ref ref="WARN_FILE_ASYNC"/>-->
+            <!--            <appender-ref ref="ERROR_FILE_ASYNC"/>-->
+        </springProfile>
+        <appender-ref ref="KAFKA_ASYNC"/>
     </root>
-
-    <!--系统操作日志-->
-    <root level="info">
-        <appender-ref ref="file_info" />
-        <appender-ref ref="file_error" />
-        <appender-ref ref="grpc-log" />
-    </root>
-
-    <!--系统用户操作日志-->
-    <logger name="sys-user" level="info">
-        <appender-ref ref="sys-user"/>
-    </logger>
-</configuration>
+</included>
